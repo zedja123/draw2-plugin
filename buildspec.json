@@ -36,10 +36,10 @@
             "bundleId": "com.example.plugintemplate-for-obs"
         }
     },
-    "name": "plugintemplate-for-obs",
-    "displayName": "Plugin Template for OBS",
+    "name": "draw2-obsplugin",
+    "displayName": "DRAW 2",
     "version": "1.0.0",
-    "author": "Your Name Here",
-    "website": "https://example.com",
-    "email": "me@example.com"
+    "author": "HichTala",
+    "website": "https://github.com/HichTala/draw2",
+    "email": "hich.tala.phd@gmail.com"
 }
