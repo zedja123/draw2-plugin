@@ -18,12 +18,19 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 
 #include <obs-module.h>
 #include <plugin-support.h>
+#include <obs-frontend-api.h>
+#include <QWidget>
+#include "DrawDock.hpp"
 
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
 
 bool obs_module_load(void)
 {
+	auto *main_window = static_cast<QWidget *>(obs_frontend_get_main_window());
+	auto *dock = new DrawDock(main_window);
+
+	obs_frontend_add_dock_by_id("drawDock", obs_module_text("Draw 2"), dock);
 	obs_log(LOG_INFO, "plugin loaded successfully (version %s)", PLUGIN_VERSION);
 	return true;
 }
