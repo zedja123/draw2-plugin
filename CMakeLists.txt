@@ -18,8 +18,8 @@ add_library(
   src/DrawDock.hpp
   src/SettingsDialog.cpp
   src/SettingsDialog.hpp
-        src/draw.c
-        src/draw.h
+  src/draw.c
+  src/draw.h
 )
 
 find_package(libobs REQUIRED)
