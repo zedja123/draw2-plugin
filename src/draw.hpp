@@ -10,10 +10,8 @@
 #include <graphics/graphics.h>
 #include <graphics/effect.h>
 
-
 struct draw_filter_data {
 	obs_source_t *source;
-
 };
 typedef struct draw_filter_data draw_filter_data_t;
 
@@ -25,10 +23,10 @@ struct draw_source_data {
 };
 typedef struct draw_source_data draw_source_data_t;
 
-static const char* draw_filter_get_name(void *type_data);
-static const char* draw_source_get_name(void *type_data);
-static void* draw_filter_create(obs_data_t *settings, obs_source_t *source);
-static void* draw_source_create(obs_data_t *settings, obs_source_t *source);
+static const char *draw_filter_get_name(void *type_data);
+static const char *draw_source_get_name(void *type_data);
+static void *draw_filter_create(obs_data_t *settings, obs_source_t *source);
+static void *draw_source_create(obs_data_t *settings, obs_source_t *source);
 static void draw_filter_destroy(void *data);
 uint32_t draw_source_get_height(void *data);
 uint32_t draw_source_get_width(void *data);
