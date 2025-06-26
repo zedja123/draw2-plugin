@@ -34,5 +34,8 @@ uint32_t draw_source_get_height(void *data);
 uint32_t draw_source_get_width(void *data);
 void draw_filter_get_defaults(obs_data_t *settings);
 void draw_source_video_render(void *data, gs_effect_t *effect);
+bool add_source_to_list(void *data, obs_source_t *source);
+static bool draw_source_type_changed(obs_properties_t *props, obs_property_t *list, obs_data_t *settings);
+obs_properties_t *draw_source_get_properties(void *data);
 
 #endif //DRAW_H
