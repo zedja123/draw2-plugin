@@ -24,7 +24,7 @@ struct obs_source_info draw_source = {.id = "draw_source",
 				      .get_width = draw_source_get_width,
 				      .get_height = draw_source_get_height,
 				      .get_defaults = draw_filter_get_defaults,
-				      // .video_render = draw_source_video_render,
+				      .video_render = draw_source_video_render,
 				      .get_properties = draw_source_get_properties,
 				      .update = draw_source_update,
 				      .icon_type = OBS_ICON_TYPE_COLOR};
@@ -125,23 +125,23 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 	if (!captured_frame)
 		return;
 
-	// if (!effect)
-	// 	return;
-	//
-	// gs_effect_set_texture(gs_effect_get_param_by_name(effect, "image"), captured_frame);
-	//
-	// gs_technique_t *tech = gs_effect_get_technique(effect, "Draw");
-	// if (!tech)
-	// 	return;
-	//
-	// size_t passes = gs_technique_begin(tech);
-	// for (size_t i = 0; i < passes; i++) {
-	// 	if (gs_technique_begin_pass(tech, i)) {
-	// 		gs_draw_sprite(captured_frame, 0, source_data->width, source_data->height);
-	// 		gs_technique_end_pass(tech);
-	// 	}
-	// }
-	// gs_technique_end(tech);
+	if (!effect)
+		return;
+
+	gs_effect_set_texture(gs_effect_get_param_by_name(effect, "image"), captured_frame);
+
+	gs_technique_t *tech = gs_effect_get_technique(effect, "Draw");
+	if (!tech)
+		return;
+
+	size_t passes = gs_technique_begin(tech);
+	for (size_t i = 0; i < passes; i++) {
+		if (gs_technique_begin_pass(tech, i)) {
+			gs_draw_sprite(captured_frame, 0, source_data->width, source_data->height);
+			gs_technique_end_pass(tech);
+		}
+	}
+	gs_technique_end(tech);
 	gs_texture_destroy(captured_frame);
 }
 bool enum_cb(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
@@ -150,8 +150,6 @@ bool enum_cb(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
 	obs_source_t *source = obs_sceneitem_get_source(item);
 	bool *found = param;
 	const char *source_id = obs_source_get_id(source);
-
-	obs_log(LOG_INFO, "%s", source_id);
 
 	if (strcmp(source_id, "draw_source") == 0) {
 		*found = true;
@@ -166,9 +164,6 @@ bool scene_contains_source(obs_source_t *source)
 	if (strcmp(obs_source_get_id(source), "scene") != 0)
 		return false;
 
-	const char *scene_name = obs_source_get_name(source);
-	obs_log(LOG_INFO, "%s", scene_name);
-
 	bool found = false;
 
 	obs_scene_t *scene_data = obs_scene_from_source(source);
@@ -181,7 +176,6 @@ bool add_source_to_list(void *data, obs_source_t *source)
 		return true;
 	obs_property_t *p = data;
 	const char *name = obs_source_get_name(source);
-	obs_log(LOG_INFO, "%s", name);
 	size_t count = obs_property_list_item_count(p);
 	size_t idx = 0;
 	while (idx < count && strcmp(name, obs_property_list_item_string(p, idx)) > 0)
