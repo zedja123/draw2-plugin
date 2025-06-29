@@ -125,12 +125,13 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 	if (!captured_frame)
 		return;
 
-	if (!effect)
+	gs_effect_t *default_effect = obs_get_base_effect(OBS_EFFECT_DEFAULT);
+	if (!default_effect)
 		return;
 
-	gs_effect_set_texture(gs_effect_get_param_by_name(effect, "image"), captured_frame);
+	gs_effect_set_texture(gs_effect_get_param_by_name(default_effect, "image"), captured_frame);
 
-	gs_technique_t *tech = gs_effect_get_technique(effect, "Draw");
+	gs_technique_t *tech = gs_effect_get_technique(default_effect, "Draw");
 	if (!tech)
 		return;
 
@@ -142,7 +143,7 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 		}
 	}
 	gs_technique_end(tech);
-	gs_texture_destroy(captured_frame);
+	// gs_texture_destroy(captured_frame);
 }
 bool enum_cb(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
 {
@@ -255,15 +256,13 @@ gs_texture_t *capture_source_frame(obs_source_t *source)
 		return NULL;
 
 	const char *source_id = obs_source_get_id(source);
-	const char *source_name = obs_source_get_name(source);
-	obs_log(LOG_INFO, "%s", source_name);
+
 	if (!source_id || strcmp(source_id, "draw_source") == 0)
 		return NULL;
 
 	uint32_t width = obs_source_get_width(source);
 	uint32_t height = obs_source_get_height(source);
 
-	// Prevent invalid texture sizes
 	if (width == 0 || height == 0)
 		return NULL;
 
@@ -281,10 +280,7 @@ gs_texture_t *capture_source_frame(obs_source_t *source)
 
 		gs_clear(GS_CLEAR_COLOR, &background, 0.0f, 0);
 		gs_ortho(0.0f, (float)width, 0.0f, (float)height, -100.0f, 100.0f);
-
-		if (obs_source_active(source) && !obs_source_removed(source)) {
-			obs_source_video_render(source);
-		}
+		obs_source_video_render(source);
 
 		gs_texrender_end(texrender);
 
