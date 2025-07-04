@@ -27,6 +27,7 @@ struct draw_source_data {
 	uint32_t minimum_out_of_screen_time;
 	uint32_t threshold_confidence_score;
 
+	gs_texrender_t *texrender;
 	gs_texture_t *output_texture;
 };
 typedef struct draw_source_data draw_source_data_t;
@@ -50,6 +51,6 @@ bool add_source_to_list(void *data, obs_source_t *source);
 static bool draw_source_type_changed(obs_properties_t *props, obs_property_t *list, obs_data_t *settings);
 obs_properties_t *draw_source_get_properties(void *data);
 void draw_source_update(void *data, obs_data_t *settings);
-gs_texture_t* capture_source_frame(obs_source_t *source);
+void capture_source_frame(void *data, obs_source_t *source);
 
 #endif //DRAW_H
