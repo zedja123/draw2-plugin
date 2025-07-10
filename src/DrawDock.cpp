@@ -8,6 +8,7 @@
 
 #include "SettingsDialog.hpp"
 
+#include <QSettings>
 #include <util/base.h>
 
 void initialize_python_interpreter()
@@ -90,9 +91,22 @@ void DrawDock::StartPythonDraw()
 		if (pModule) {
 			PyObject *pFunc = PyObject_GetAttrString(pModule, "run");
 			if (pFunc && PyCallable_Check(pFunc)) {
-				PyObject *args = PyTuple_New(1);
+				PyObject *args = PyTuple_New(5);
 				PyObject *capsule = PyCapsule_New(&this->should_run, "stop_flag", nullptr);
 				PyTuple_SetItem(args, 0, capsule);
+				QSettings settings = QSettings("HichTala", "Draw2");
+
+				char *deck_list_path = settings.value("deck_list", "").value<QString>().toUtf8().data();
+				PyTuple_SetItem(args, 1, PyUnicode_FromString(deck_list_path));
+
+				int minimum_out_of_screen_time_value = settings.value("minimum_out_of_screen_time", 25).value<int>();
+				PyTuple_SetItem(args, 2, PyLong_FromLong(minimum_out_of_screen_time_value));
+
+				int minimum_screen_time_value = settings.value("minimum_screen_time", 6).value<int>();
+				PyTuple_SetItem(args, 3, PyLong_FromLong(minimum_screen_time_value));
+
+				int confidence_value = settings.value("confidence_slider", 1).value<int>();
+				PyTuple_SetItem(args, 4, PyLong_FromLong(confidence_value));
 
 				PyObject_CallObject(pFunc, args);
 				Py_DECREF(args);

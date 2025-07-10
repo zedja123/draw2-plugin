@@ -13,7 +13,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
 
 	QSettings settings = QSettings("HichTala", "Draw2");
 
-	char *deck_list_path = settings.value("deck_list", "").value<QString>().toUtf8().data();
+	QString deck_list_path = settings.value("deck_list", "").toString();
 	int minimum_out_of_screen_time_value = settings.value("minimum_out_of_screen_time", 25).value<int>();
 	int minimum_screen_time_value = settings.value("minimum_screen_time", 6).value<int>();
 	int confidence_value = settings.value("confidence_slider", 1).value<int>();
