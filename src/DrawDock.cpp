@@ -7,6 +7,7 @@
 #include "DrawDock.hpp"
 
 #include "SettingsDialog.hpp"
+#include "plugin-support.h"
 
 #include <QSettings>
 #include <util/base.h>
@@ -85,7 +86,7 @@ void DrawDock::StartPythonDraw()
 
 	this->python_thread = std::thread([this]() {
 		PyGILState_STATE gstate = PyGILState_Ensure();
-		blog(LOG_INFO, "StartPythonDraw");
+		obs_log(LOG_INFO, "Starting Draw2 python backend");
 
 		PyObject *pName = PyUnicode_FromString("draw");
 		PyObject *pModule = PyImport_ImportModule("draw");
@@ -135,6 +136,7 @@ void DrawDock::StartPythonDraw()
 			if (this->model_ready.load()) {
 				this->start_button->setEnabled(true);
 				this->start_button->setText("Stop Draw");
+				obs_log(LOG_INFO, "Draw2 python backend started successfully");
 				break;
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -144,6 +146,7 @@ void DrawDock::StartPythonDraw()
 
 void DrawDock::StopPythonDraw()
 {
+	obs_log(LOG_INFO, "Stopping Draw2 python backend");
 	if (!this->running_flag.load())
 		return;
 	this->should_run.store(false);
