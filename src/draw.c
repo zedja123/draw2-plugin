@@ -97,9 +97,9 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 
 	gs_texrender_t *render = gs_texrender_create(GS_RGBA, GS_ZS_NONE);
 	if (!gs_texrender_begin(render, width, height)) {
-		blog(LOG_ERROR, "Failed to begin texrender: %s", strerror(errno));
 		obs_source_release(source);
 		context->processing = false;
+		gs_texrender_destroy(render);
 		return;
 	}
 
