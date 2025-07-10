@@ -8,10 +8,10 @@
 #include "DrawDock.hpp"
 
 #include <QDialog>
-#include <QVBoxLayout>
-#include <QLabel>
-#include <QLineEdit>
 #include <QFileDialog>
+#include <QLineEdit>
+#include <QSlider>
+#include <QSpinBox>
 
 class SettingsDialog : public QDialog {
 	Q_OBJECT
@@ -21,9 +21,17 @@ public:
 
 private:
 	QLineEdit *deck_list = new QLineEdit();
+	QSpinBox *minimum_out_of_screen_time = new QSpinBox;
+	QSpinBox *minimum_screen_time = new QSpinBox;
+	QSlider *confidence_slider = new QSlider(Qt::Horizontal);
 	QPushButton *browse_button = new QPushButton("Browse");
 	QPushButton *ok_button = new QPushButton("&OK");
 	QPushButton *cancel_button = new QPushButton("&Cancel");
+
+	// char *deck_list_path = nullptr;
+	// int minimum_out_of_screen_time_value;
+	// int minimum_screen_time_value;
+	// int confidence_value;
 
 private slots:
 	void BrowseButtonClicked();

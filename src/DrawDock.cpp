@@ -68,7 +68,6 @@ void DrawDock::StartButtonClicked()
 
 void DrawDock::SettingsButtonClicked()
 {
-	// QMessageBox::information(this, "Settings", "Settings dialog is not implemented yet.");
 	auto *settings_dialog = new SettingsDialog(this);
 	settings_dialog->exec();
 }
