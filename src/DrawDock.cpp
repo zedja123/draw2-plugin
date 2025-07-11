@@ -23,17 +23,16 @@ void initialize_python_interpreter()
 		QString sitePackagesPath = pyHome + "/lib/python3.12/site-packages";
 
 		obs_log(LOG_INFO, "Initializing Python interpreter with home: %s", pyHome.toStdString().c_str());
-		obs_log(LOG_INFO, "Initializing Python interpreter with site packages: %s", sitePackagesPath.toStdString().c_str());
+		obs_log(LOG_INFO, "Initializing Python interpreter with site packages: %s",
+			sitePackagesPath.toStdString().c_str());
 
 		qputenv("PYTHONHOME", QByteArray(pyHome));
 		qputenv("PYTHONPATH", QByteArray(sitePackagesPath.toUtf8()));
-
 
 		Py_Initialize();
 		// PyRun_SimpleString(R"(import sys)");
 		// PyRun_SimpleString(R"(sys.path.insert(0, '/home/hicham/miniconda3/envs/phd/lib/python3.12/site-packages'))");
 		// PyRun_SimpleString(R"(sys.path.insert(0, '/home/hicham/miniconda3/envs/phd/lib/python3.12/site-packages'))");
-
 	}
 }
 
