@@ -11,7 +11,7 @@
 
 #include <QSettings>
 #include <QStandardPaths>
-#include <util/base.h>
+#include <obs-module.h>
 
 void initialize_python_interpreter()
 {
