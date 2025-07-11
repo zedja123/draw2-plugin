@@ -7,7 +7,6 @@
 #include "DrawDock.hpp"
 
 #include "SettingsDialog.hpp"
-// #include "plugin-support.h"
 
 #include <QSettings>
 #include <QStandardPaths>
@@ -24,7 +23,7 @@ void initialize_python_interpreter()
 
 		blog(LOG_INFO, "Initializing Python interpreter with home: %s", pyHome.toStdString().c_str());
 		blog(LOG_INFO, "Initializing Python interpreter with site packages: %s",
-			sitePackagesPath.toStdString().c_str());
+		     sitePackagesPath.toStdString().c_str());
 
 		qputenv("PYTHONHOME", QByteArray(pyHome));
 		qputenv("PYTHONPATH", QByteArray(sitePackagesPath.toUtf8()));
