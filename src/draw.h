@@ -16,6 +16,11 @@ struct draw_source_data {
 	enum input_type input_type;
 
 	obs_weak_source_t *source;
+
+#ifdef _WIN32
+	HANDLE shared_frame_handle;
+#endif
+
 	uint8_t *shared_frame;
 	size_t shared_frame_size;
 	uint32_t source_width;

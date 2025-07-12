@@ -8,10 +8,15 @@
 #include "draw.h"
 
 #include <errno.h>
-#include <fcntl.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <sys/mman.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#endif
 
 const char *draw_source_get_name(void *type_data)
 {
@@ -44,9 +49,17 @@ void draw_source_destroy(void *data)
 		obs_leave_graphics();
 	}
 	if (context->shared_frame) {
+#ifdef _WIN32
+		UnmapViewOfFile(context->shared_frame);
+		if (context->shared_frame_handle) {
+			CloseHandle(context->shared_frame_handle);
+			context->shared_frame_handle = NULL;
+		}
+#else
 		munmap(context->shared_frame, context->source_width * context->source_height * 4);
-		context->shared_frame = NULL;
 		shm_unlink(OBS_SHM_NAME);
+#endif
+		context->shared_frame = NULL;
 	}
 	bfree(context);
 }
@@ -269,6 +282,20 @@ void init_shared_memory(draw_source_data_t *context)
 {
 	size_t required_size =
 		sizeof(shared_frame_header_t) + (size_t)context->source_width * context->source_height * 4;
+#ifdef _WIN32
+	context->shared_frame_handle = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE,
+		0, (DWORD)required_size, OBS_SHM_NAME);
+	if (!context->shared_frame_handle) return;
+
+	context->shared_frame = (uint8_t *)MapViewOfFile(context->shared_frame_handle, FILE_MAP_WRITE, 0, 0,
+		required_size);
+	if (!context->shared_frame) {
+		blog(LOG_ERROR, "Failed to map shared memory: %s", GetLastError());
+		CloseHandle(context->shared_frame_handle);
+		context->shared_frame_handle = NULL;
+		return;
+	}
+#else
 	if (context->shared_frame) {
 		munmap(context->shared_frame, required_size);
 		context->shared_frame = NULL;
@@ -288,6 +315,7 @@ void init_shared_memory(draw_source_data_t *context)
 	}
 	context->shared_frame = mmap(NULL, required_size, PROT_WRITE, MAP_SHARED, fd, 0);
 	close(fd);
+#endif
 }
 void switch_source(draw_source_data_t *context, obs_source_t *source)
 {
