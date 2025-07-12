@@ -22,6 +22,9 @@ void *draw_source_create(obs_data_t *settings, obs_source_t *source)
 	context->shared_frame = NULL;
 	context->display_texture = NULL;
 	obs_source_update(source, NULL);
+#ifdef _WIN32
+	context->shared_frame_handle=NULL;
+#endif
 	return context;
 }
 
@@ -148,6 +151,19 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 
 	const char *shm_name = PYTHON_SHM_NAME;
 
+#ifdef _WIN32
+	HANDLE python_shared_frame_handle = OpenFileMappingA(FILE_MAP_READ, FALSE, shm_name);
+	if (!python_shared_frame_handle) {
+		context->processing = false;
+		return;
+	}
+	LPVOID pBuf = MapViewOfFile(hMapFile, FILE_MAP_READ, 0, 0, 0);
+	if (pBuf == NULL) {
+		CloseHandle(hMapFile);
+		context->processing = false;
+		return;
+	}
+#else
 	int fd = shm_open(shm_name, O_RDONLY, 0666);
 	if (fd < 0) {
 		context->processing = false;
@@ -167,7 +183,7 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 		context->processing = false;
 		return;
 	}
-
+#endif
 	shared_frame_header_t *python_header = (shared_frame_header_t *)python_shared_frame;
 	context->display_width = python_header->width;
 	context->display_height = python_header->height;
@@ -179,7 +195,12 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 		gs_texture_create(context->display_width, context->display_height, GS_RGBA, 1, NULL, GS_DYNAMIC);
 	gs_texture_set_image(context->display_texture, image_data, context->display_width * 4, false);
 
+#ifdef _WIN32
+	UnmapViewOfFile(pBuf);
+	CloseHandle(python_shared_frame_handle);
+#else
 	munmap(python_shared_frame, sb.st_size);
+#endif
 
 	gs_effect_t *default_effect = obs_get_base_effect(OBS_EFFECT_DEFAULT);
 	gs_eparam_t *image = gs_effect_get_param_by_name(default_effect, "image");
@@ -274,6 +295,10 @@ void init_shared_memory(draw_source_data_t *context)
 	size_t required_size =
 		sizeof(shared_frame_header_t) + (size_t)context->source_width * context->source_height * 4;
 #ifdef _WIN32
+	if (context->shared_frame_handle) {
+		CloseHandle(context->shared_frame_handle);
+		context->shared_frame_handle = NULL;
+	}
 	context->shared_frame_handle =
 		CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, (DWORD)required_size, OBS_SHM_NAME);
 	if (!context->shared_frame_handle)
