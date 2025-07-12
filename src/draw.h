@@ -7,10 +7,16 @@
 
 #include <obs-module.h>
 
-enum input_type {
-	INPUT_TYPE_SOURCE,
-	INPUT_TYPE_SCENE
-};
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
+enum input_type { INPUT_TYPE_SOURCE, INPUT_TYPE_SCENE };
 
 struct draw_source_data {
 	enum input_type input_type;
@@ -35,6 +41,5 @@ struct draw_source_data {
 typedef struct draw_source_data draw_source_data_t;
 
 extern struct obs_source_info draw_source;
-
 
 #endif //DRAW_H

@@ -9,15 +9,6 @@
 
 #include <errno.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
-
 const char *draw_source_get_name(void *type_data)
 {
 	UNUSED_PARAMETER(type_data);
@@ -283,12 +274,13 @@ void init_shared_memory(draw_source_data_t *context)
 	size_t required_size =
 		sizeof(shared_frame_header_t) + (size_t)context->source_width * context->source_height * 4;
 #ifdef _WIN32
-	context->shared_frame_handle = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE,
-		0, (DWORD)required_size, OBS_SHM_NAME);
-	if (!context->shared_frame_handle) return;
+	context->shared_frame_handle =
+		CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, (DWORD)required_size, OBS_SHM_NAME);
+	if (!context->shared_frame_handle)
+		return;
 
-	context->shared_frame = (uint8_t *)MapViewOfFile(context->shared_frame_handle, FILE_MAP_WRITE, 0, 0,
-		required_size);
+	context->shared_frame =
+		(uint8_t *)MapViewOfFile(context->shared_frame_handle, FILE_MAP_WRITE, 0, 0, required_size);
 	if (!context->shared_frame) {
 		blog(LOG_ERROR, "Failed to map shared memory: %s", GetLastError());
 		CloseHandle(context->shared_frame_handle);
