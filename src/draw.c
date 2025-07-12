@@ -157,12 +157,13 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 		context->processing = false;
 		return;
 	}
-	LPVOID pBuf = MapViewOfFile(hMapFile, FILE_MAP_READ, 0, 0, 0);
+	LPVOID pBuf = MapViewOfFile(python_shared_frame_handle, FILE_MAP_READ, 0, 0, 0);
 	if (pBuf == NULL) {
-		CloseHandle(hMapFile);
+		CloseHandle(python_shared_frame_handle);
 		context->processing = false;
 		return;
 	}
+	shared_frame_header_t *python_header = (shared_frame_header_t *)pBuf;
 #else
 	int fd = shm_open(shm_name, O_RDONLY, 0666);
 	if (fd < 0) {
@@ -183,8 +184,8 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 		context->processing = false;
 		return;
 	}
-#endif
 	shared_frame_header_t *python_header = (shared_frame_header_t *)python_shared_frame;
+#endif
 	context->display_width = python_header->width;
 	context->display_height = python_header->height;
 	uint8_t *image_data = python_shared_frame + sizeof(shared_frame_header_t);
