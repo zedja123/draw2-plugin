@@ -1,8 +1,8 @@
 //
 // Created by HichTala on 21/06/25.
 //
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
+// #define PY_SSIZE_T_CLEAN
+// #include <Python.h>
 
 #include "DrawDock.hpp"
 
@@ -66,8 +66,8 @@ DrawDock::DrawDock(QWidget *parent) : QWidget(parent)
 }
 DrawDock::~DrawDock()
 {
-	if (this->should_run)
-		StopPythonDraw();
+	// if (this->should_run)
+	// 	StopPythonDraw();
 };
 
 void DrawDock::StartButtonClicked()
