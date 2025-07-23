@@ -113,7 +113,7 @@ jobs:
           print "pluginVersion=${product_version}" >> $GITHUB_OUTPUT
 
       - name: Print env
-        run: env | grep -E 'CMAKE_PREFIX_PATH'
+        run: echo "$CMAKE_PREFIX_PATH"
       - name: Install Boost 🚀
         run: brew install boost
       - name: Check Boost location
