@@ -112,20 +112,6 @@ jobs:
           print "pluginName=${product_name}" >> $GITHUB_OUTPUT
           print "pluginVersion=${product_version}" >> $GITHUB_OUTPUT
 
-      - name: Print env
-        run: echo "$CMAKE_PREFIX_PATH"
-      - name: Install Boost 🚀
-        run: brew install boost
-      - name: Check Boost location
-        run: brew --prefix boost
-      - name: Set BOOST_ROOT and CMAKE_PREFIX_PATH
-        run: |
-          BOOST_ROOT=$(brew --prefix boost)
-          echo "BOOST_ROOT=$BOOST_ROOT" >> $GITHUB_ENV
-          echo "CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$BOOST_ROOT" >> $GITHUB_ENV
-      - name: Print env
-        run: env | grep -E 'BOOST_ROOT|CMAKE_PREFIX_PATH'
-
       - uses: actions/cache/restore@v4
         id: ccache-cache
         with:
@@ -293,16 +279,6 @@ jobs:
 
           "pluginName=${ProductName}" >> $env:GITHUB_OUTPUT
           "pluginVersion=${ProductVersion}" >> $env:GITHUB_OUTPUT
-
-      - name: Install vcpkg and Boost 🚀
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          .\vcpkg\bootstrap-vcpkg.bat
-          .\vcpkg\vcpkg.exe install boost-interprocess:x64-windows
-      - name: Set vcpkg toolchain for CMake
-        run: echo "VCPKG_ROOT=${{ github.workspace }}\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
-      - name: Configure CMake with vcpkg toolchain
-        run: echo "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Build Plugin 🧱
         uses: ./.github/actions/build-plugin
