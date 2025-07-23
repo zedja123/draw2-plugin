@@ -122,11 +122,6 @@ jobs:
         run: |
           BOOST_ROOT=$(brew --prefix boost)
           echo "BOOST_ROOT=$BOOST_ROOT" >> $GITHUB_ENV
-          echo "CMAKE_PREFIX_PATH=$BOOST_ROOT" >> $GITHUB_ENV
-      - name: Set BOOST_ROOT and CMAKE_PREFIX_PATH
-        run: |
-          BOOST_ROOT=$(brew --prefix boost)
-          echo "BOOST_ROOT=$BOOST_ROOT" >> $GITHUB_ENV
           echo "CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$BOOST_ROOT" >> $GITHUB_ENV
       - name: Print env
         run: env | grep -E 'BOOST_ROOT|CMAKE_PREFIX_PATH'
