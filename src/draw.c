@@ -14,6 +14,14 @@
 
 #include <errno.h>
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <unistd.h>
+
 const char *draw_source_get_name(void *type_data)
 {
 	UNUSED_PARAMETER(type_data);
