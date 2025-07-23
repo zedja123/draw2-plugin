@@ -20,10 +20,14 @@ add_library(
   src/SettingsDialog.hpp
   src/draw.c
   src/draw.h
+        src/shared_memory_wrapper.cpp
+        src/shared_memory_wrapper.h
 )
 
 find_package(libobs REQUIRED)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::libobs)
+
+find_package(Boost REQUIRED)
 
 if(ENABLE_FRONTEND_API)
   find_package(obs-frontend-api REQUIRED)
