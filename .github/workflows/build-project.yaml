@@ -130,6 +130,9 @@ jobs:
           print "pluginName=${product_name}" >> $GITHUB_OUTPUT
           print "pluginVersion=${product_version}" >> $GITHUB_OUTPUT
 
+      - name: Install Boost 🚀
+        run: brew install boost
+
       - uses: actions/cache/restore@v4
         id: ccache-cache
         with:
@@ -221,6 +224,9 @@ jobs:
           echo "pluginName=${product_name}" >> $GITHUB_OUTPUT
           echo "pluginVersion=${product_version}" >> $GITHUB_OUTPUT
 
+      - name: Install Boost 🚀
+        run: sudo apt-get update && sudo apt-get install -y libboost-all-dev
+
       - uses: actions/cache/restore@v4
         id: ccache-cache
         with:
@@ -294,6 +300,16 @@ jobs:
 
           "pluginName=${ProductName}" >> $env:GITHUB_OUTPUT
           "pluginVersion=${ProductVersion}" >> $env:GITHUB_OUTPUT
+
+      - name: Install vcpkg and Boost 🚀
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          .\vcpkg\bootstrap-vcpkg.bat
+          .\vcpkg\vcpkg.exe install boost-interprocess:x64-windows
+      - name: Set vcpkg toolchain for CMake
+        run: echo "VCPKG_ROOT=${{ github.workspace }}\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Configure CMake with vcpkg toolchain
+        run: echo "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Build Plugin 🧱
         uses: ./.github/actions/build-plugin
