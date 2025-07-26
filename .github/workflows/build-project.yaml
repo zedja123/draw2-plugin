@@ -268,11 +268,23 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Install Boost
-        uses: MarkusJx/install-boost@v2
-        id: install-boost
-        with:
-          boost_version: 1.88.0
+      - name: Install Boost 🚀
+        shell: cmd
+        run: |
+          cd ..
+          git clone --depth 1 https://github.com/boostorg/boost boost
+          cd boost
+          xcopy /s /e /q %GITHUB_WORKSPACE% libs\align\
+          git submodule init libs/assert
+          git submodule init libs/config
+          git submodule init libs/core
+          git submodule init libs/static_assert
+          git submodule init libs/headers
+          git submodule init tools/build
+          git submodule init tools/boost_install
+          git submodule update
+          cmd /c bootstrap
+          b2 -d0 headers
 
       - name: Set Up Environment 🔧
         id: setup
