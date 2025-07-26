@@ -268,9 +268,6 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Install Boost manually via vcpkg (if not using vcpkg.json)
-        run: vcpkg install boost
-
       - name: Set Up Environment 🔧
         id: setup
         run: |
@@ -285,6 +282,9 @@ jobs:
 
           "pluginName=${ProductName}" >> $env:GITHUB_OUTPUT
           "pluginVersion=${ProductVersion}" >> $env:GITHUB_OUTPUT
+
+      - name: Install Boost 🚀
+        run: vcpkg install boost
 
       - name: Build Plugin 🧱
         uses: ./.github/actions/build-plugin
