@@ -268,15 +268,14 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-#      - name: Install Boost 🚀
-      - name: Set Up vcpkg and Boost 📦
+      - name: Set up vcpkg 📦
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-          vcpkgJsonGlob: '**/vcpkg.json'
 
       - name: Install Boost 🚀
-        run: vcpkg install boost
+        run: |
+          .\vcpkg\vcpkg install boost:x64-windows
 
       - name: Set Up Environment 🔧
         id: setup
