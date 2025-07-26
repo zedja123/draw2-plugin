@@ -112,6 +112,9 @@ jobs:
           print "pluginName=${product_name}" >> $GITHUB_OUTPUT
           print "pluginVersion=${product_version}" >> $GITHUB_OUTPUT
 
+      - name: Install Boost 🚀
+        run: brew install boost
+
       - uses: actions/cache/restore@v4
         id: ccache-cache
         with:
