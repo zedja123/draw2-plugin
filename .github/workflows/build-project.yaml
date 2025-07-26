@@ -268,14 +268,23 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Download Boost
+      - name: Download and Extract Boost
+        shell: pwsh
         run: |
           $boostVersion = "1.88.0"
-          $boostZip = "boost_${boostVersion.Replace('.', '_')}.zip"
+          $boostZip = "boost_$($boostVersion.Replace('.', '_')).zip"
           $boostUrl = "https://boostorg.jfrog.io/artifactory/main/release/$boostVersion/source/$boostZip"
+          Write-Host "Downloading Boost from $boostUrl"
           Invoke-WebRequest -Uri $boostUrl -OutFile $boostZip
-          Expand-Archive -Path $boostZip -DestinationPath $env:USERPROFILE\boost
-          echo "BOOST_ROOT=$env:USERPROFILE\boost\boost_$($boostVersion.Replace('.', '_'))" >> $env:GITHUB_ENV
+          $extractPath = "$env:USERPROFILE\boost"
+          if (!(Test-Path $extractPath)) {
+            New-Item -ItemType Directory -Path $extractPath | Out-Null
+          }
+          Write-Host "Extracting $boostZip to $extractPath"
+          Expand-Archive -Path $boostZip -DestinationPath $extractPath
+          $boostRoot = "$extractPath\boost_$($boostVersion.Replace('.', '_'))"
+          echo "BOOST_ROOT=$boostRoot" >> $env:GITHUB_ENV
+          Write-Host "BOOST_ROOT set to $boostRoot"
 
       - name: Set Up Environment 🔧
         id: setup
