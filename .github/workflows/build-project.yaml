@@ -268,14 +268,14 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Set up vcpkg 📦
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-
-      - name: Install Boost 🚀
+      - name: Download Boost
         run: |
-          .\vcpkg\vcpkg install boost:x64-windows
+          $boostVersion = "1.83.0"
+          $boostZip = "boost_${boostVersion.Replace('.', '_')}.zip"
+          $boostUrl = "https://boostorg.jfrog.io/artifactory/main/release/$boostVersion/source/$boostZip"
+          Invoke-WebRequest -Uri $boostUrl -OutFile $boostZip
+          Expand-Archive -Path $boostZip -DestinationPath $env:USERPROFILE\boost
+          echo "BOOST_ROOT=$env:USERPROFILE\boost\boost_$($boostVersion.Replace('.', '_'))" >> $env:GITHUB_ENV
 
       - name: Set Up Environment 🔧
         id: setup
