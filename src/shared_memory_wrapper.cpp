@@ -83,7 +83,6 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 
 
 	} catch (const interprocess_exception &ex) {
-		// Shared memory does not exist (yet)
 		context->processing = false;
 		return false;
 	}
