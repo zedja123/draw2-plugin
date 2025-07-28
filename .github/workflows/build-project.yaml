@@ -284,7 +284,12 @@ jobs:
           "pluginVersion=${ProductVersion}" >> $env:GITHUB_OUTPUT
 
       - name: Install Boost 🚀
-        run: vcpkg install boost-interprocess
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+          vcpkgJsonGlob: ''  # We're not using a vcpkg.json
+          runVcpkgInstall: true
+          vcpkgArguments: boost-interprocess
 
       - name: Build Plugin 🧱
         uses: ./.github/actions/build-plugin
