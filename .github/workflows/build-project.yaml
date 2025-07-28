@@ -284,10 +284,10 @@ jobs:
           "pluginVersion=${ProductVersion}" >> $env:GITHUB_OUTPUT
 
       - name: Install Boost 🚀
-        run: vcpkg\vcpkg.exe install boost-program-options:x64-windows
+        run: vcpkg install boost-interprocess
 
       - name: Integrate Boost 🚀
-        run: vcpkg\vcpkg.exe integrate install
+        run: vcpkg integrate install
 
 
       - name: Build Plugin 🧱
