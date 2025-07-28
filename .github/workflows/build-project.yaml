@@ -284,12 +284,11 @@ jobs:
           "pluginVersion=${ProductVersion}" >> $env:GITHUB_OUTPUT
 
       - name: Install Boost 🚀
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-          vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
-          vcpkgJsonGlob: 'vcpkg.json'
-          runVcpkgInstall: true
+        run: vcpkg\vcpkg.exe install boost-program-options:x64-windows
+
+      - name: Integrate Boost 🚀
+        run: vcpkg\vcpkg.exe integrate install
+
 
       - name: Build Plugin 🧱
         uses: ./.github/actions/build-plugin
