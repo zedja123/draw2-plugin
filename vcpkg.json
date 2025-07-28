@@ -1,6 +1,7 @@
 {
   "name": "draw2-obsplugin",
   "version-string": "0.1.0",
+  "builtin-baseline": "f866f3af8ffcc119b4f9d0d73de3cd78bc270baf",
   "dependencies": [
     "boost-interprocess"
   ]
