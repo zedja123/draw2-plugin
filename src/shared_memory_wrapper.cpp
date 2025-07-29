@@ -80,6 +80,7 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 		gs_texture_set_image(context->display_texture, image_data, context->display_width * 4, false);
 
 	} catch (const interprocess_exception &ex) {
+		(void)ex;
 		context->processing = false;
 		return false;
 	}
@@ -93,6 +94,7 @@ extern "C" void ensure_shared_memory_exists(draw_source_data_t *context)
 	try {
 		shared_memory_object shm(open_only, OBS_SHM_NAME, read_only);
 	} catch (const interprocess_exception &ex) {
+		(void)ex;
 		init_shared_memory(context);
 	}
 }
