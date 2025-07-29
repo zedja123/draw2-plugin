@@ -283,18 +283,10 @@ jobs:
           "pluginName=${ProductName}" >> $env:GITHUB_OUTPUT
           "pluginVersion=${ProductVersion}" >> $env:GITHUB_OUTPUT
 
-      - name: Download Boost
-        run: |
-          curl -L -o boost.zip https://archives.boost.io/release/1.82.0/source/boost_1_82_0.zip
-          7z x boost.zip -o"boost"
-      
-      - name: Build Boost
-        run: |
-          cd boost\boost_1_84_0
-          bootstrap.bat
-          .\b2 --build-type=complete --prefix=..\boost-install stage install
-
-
+      - name: Install Boost 🚀
+        uses: MarkusJx/install-boost@v2.5.0
+        with:
+          boost_version: 1.82.0
 
       - name: Build Plugin 🧱
         uses: ./.github/actions/build-plugin
