@@ -286,8 +286,14 @@ jobs:
       - name: Install Boost 🚀
         run: vcpkg install boost-interprocess
 
-      - name: Integrate Boost 🚀
-        run: vcpkg integrate install
+      - name: Cache vcpkg artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/vcpkg/archives
+            ${{ github.workspace }}/vcpkg_installed
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}
+
 
 
       - name: Build Plugin 🧱
