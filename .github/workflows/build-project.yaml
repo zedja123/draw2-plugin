@@ -288,8 +288,7 @@ jobs:
         with:
           boost_version: 1.82.0
           toolset: msvc19.44
-          plateform_version: 2022
-          arch: x64
+          platform_version: 2022
 
       - name: Build Plugin 🧱
         uses: ./.github/actions/build-plugin
