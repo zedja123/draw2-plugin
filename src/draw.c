@@ -90,7 +90,7 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 		return;
 	}
 
-	shared_memory_exists(context);
+	ensure_shared_memory_exists(context);
 
 	struct vec4 clear_color;
 	vec4_set(&clear_color, 0.0f, 0.0f, 0.0f, 1.0f); // black

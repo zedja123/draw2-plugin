@@ -54,9 +54,7 @@ extern "C" void destroy_shared_memory(draw_source_data_t *context)
 {
 	using namespace boost::interprocess;
 	shared_memory_object::remove(OBS_SHM_NAME);
-	shm_unlink(OBS_SHM_NAME);
 	shared_memory_object::remove(PYTHON_SHM_NAME);
-	shm_unlink(PYTHON_SHM_NAME);
 	context->region = nullptr;
 	context->shared_frame = nullptr;
 }
@@ -74,7 +72,7 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 		context->display_width = python_header->width;
 		context->display_height = python_header->height;
 
-		uint8_t *image_data = &*static_cast<uint8_t *>(region.get_address()) + sizeof(shared_frame_header_t);
+		uint8_t *image_data = static_cast<uint8_t *>(region.get_address()) + sizeof(shared_frame_header_t);
 		if (context->display_texture)
 			gs_texture_destroy(context->display_texture);
 		context->display_texture = gs_texture_create(context->display_width, context->display_height, GS_RGBA,
@@ -89,12 +87,12 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 	return true;
 }
 
-extern "C" void shared_memory_exists(draw_source_data_t *context)
+extern "C" void ensure_shared_memory_exists(draw_source_data_t *context)
 {
 	using namespace boost::interprocess;
 	try {
 		shared_memory_object shm(open_only, OBS_SHM_NAME, read_only);
-	} catch (interprocess_exception &ex) {
+	} catch (const interprocess_exception &ex) {
 		init_shared_memory(context);
 	}
 }
