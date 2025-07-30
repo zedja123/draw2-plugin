@@ -27,8 +27,9 @@ add_library(
 find_package(libobs REQUIRED)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::libobs)
 
-find_package(Python3)
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${Python3_INCLUDE_DIRS})
+find_package(PythonLibs REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIRS})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${PYTHON_LIBRARIES})
 
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
