@@ -161,7 +161,9 @@ void DrawDock::initialize_python_interpreter()
 		QString pythonVersion;
 		{
 			// Execute a Python script to get the version dynamically
-			FILE* pipe = popen("python3 -c \"import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')\"", "r");
+			FILE *pipe = popen(
+				"python3 -c \"import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')\"",
+				"r");
 			if (!pipe) {
 				blog(LOG_ERROR, "Failed to retrieve Python version");
 				return;
