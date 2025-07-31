@@ -158,7 +158,11 @@ void DrawDock::initialize_python_interpreter()
 
 		QSettings settings = QSettings("HichTala", "Draw2");
 		QByteArray pyHome = settings.value("python_path", "").toString().toUtf8();
-		qputenv("PYTHONHOME", QByteArray(pyHome));
+		QFileInfo pyHomeInfo(QString::fromUtf8(pyHome));
+		if (!pyHomeInfo.exists() || !pyHomeInfo.isDir()) {
+			blog(LOG_INFO, "Failed to initialize Python interpreter");
+			return;
+		}
 
 		QString pythonVersion;
 		{
@@ -187,10 +191,15 @@ void DrawDock::initialize_python_interpreter()
 		}
 
 		QString sitePackagesPath = pyHome + "/lib/python" + pythonVersion + "/site-packages";
+		QFileInfo sitePackagesPathInfo(sitePackagesPath);
+		if (!sitePackagesPathInfo.exists() || !sitePackagesPathInfo.isDir()) {
+			blog(LOG_INFO, "Failed to initialize Python interpreter");
+			return;
+		}
 		blog(LOG_INFO, "Initializing Python interpreter with home: %s", pyHome.toStdString().c_str());
 		blog(LOG_INFO, "Initializing Python interpreter with site packages: %s",
 		     sitePackagesPath.toStdString().c_str());
-
+		qputenv("PYTHONHOME", QByteArray(pyHome));
 		qputenv("PYTHONPATH", QByteArray(sitePackagesPath.toUtf8()));
 
 		Py_Initialize();
@@ -200,6 +209,6 @@ void DrawDock::initialize_python_interpreter()
 		blog(LOG_INFO, "Python interpreter initialized successfully");
 		this->start_button->setEnabled(true);
 	} else {
-		blog(LOG_ERROR, "Failed to initialize Python interpreter");
+		blog(LOG_INFO, "Failed to initialize Python interpreter");
 	}
 }
