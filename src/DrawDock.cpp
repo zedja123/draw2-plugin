@@ -201,7 +201,8 @@ void DrawDock::initialize_python_interpreter()
 			return;
 		}
 		if (!sitePackagesPathInfo.isDir()) {
-			blog(LOG_INFO, "Failed to initialize Python interpreter: site-packages path is not a directory");
+			blog(LOG_INFO,
+			     "Failed to initialize Python interpreter: site-packages path is not a directory");
 			return;
 		}
 		blog(LOG_INFO, "Initializing Python interpreter with home: %s", pyHome.toStdString().c_str());
