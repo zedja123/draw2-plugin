@@ -159,8 +159,12 @@ void DrawDock::initialize_python_interpreter()
 		QSettings settings = QSettings("HichTala", "Draw2");
 		QByteArray pyHome = settings.value("python_path", "").toString().toUtf8();
 		QFileInfo pyHomeInfo(QString::fromUtf8(pyHome));
-		if (!pyHomeInfo.exists() || !pyHomeInfo.isDir()) {
-			blog(LOG_INFO, "Failed to initialize Python interpreter");
+		if (!pyHomeInfo.exists()) {
+			blog(LOG_INFO, "Failed to initialize Python interpreter: PyHome does not exist");
+			return;
+		}
+		if (!pyHomeInfo.isDir()) {
+			blog(LOG_INFO, "Failed to initialize Python interpreter: PyHome is not a directory");
 			return;
 		}
 
@@ -192,8 +196,12 @@ void DrawDock::initialize_python_interpreter()
 
 		QString sitePackagesPath = pyHome + "/lib/python" + pythonVersion + "/site-packages";
 		QFileInfo sitePackagesPathInfo(sitePackagesPath);
-		if (!sitePackagesPathInfo.exists() || !sitePackagesPathInfo.isDir()) {
-			blog(LOG_INFO, "Failed to initialize Python interpreter");
+		if (!sitePackagesPathInfo.exists()) {
+			blog(LOG_INFO, "Failed to initialize Python interpreter: site-packages path does not exist");
+			return;
+		}
+		if (!sitePackagesPathInfo.isDir()) {
+			blog(LOG_INFO, "Failed to initialize Python interpreter: site-packages path is not a directory");
 			return;
 		}
 		blog(LOG_INFO, "Initializing Python interpreter with home: %s", pyHome.toStdString().c_str());
