@@ -195,11 +195,43 @@ void DrawDock::initialize_python_interpreter()
 		blog(LOG_INFO, "Initializing Python interpreter with home: %s", pyHome.toStdString().c_str());
 		blog(LOG_INFO, "Initializing Python interpreter with site packages: %s",
 		     sitePackagesPath.toStdString().c_str());
-		qputenv("PYTHONHOME", QByteArray(pyHome));
+		// qputenv("PYTHONHOME", QByteArray(pyHome));
 		// qputenv("PYTHONPATH", QByteArray(sitePackagesPath.toUtf8()));
 
-		Py_Initialize();
+		// Modern embedding API
+		PyStatus status;
+		PyConfig config;
+		PyConfig_InitPythonConfig(&config);
+
+		// Set PYTHONHOME equivalent
+		status = PyConfig_SetString(&config, &config.home, reinterpret_cast<const wchar_t *>(pyHome.toStdString().c_str()));
+		if (PyStatus_Exception(status)) goto fail;
+
+		// Enable site imports
+		config.site_import = 1;
+
+		// Append site-packages to module_search_paths
+		status = PyWideStringList_Append(&config.module_search_paths, sitePackagesPath.toStdWString().c_str());
+		if (PyStatus_Exception(status)) goto fail;
+
+		// Initialize Python
+		status = Py_InitializeFromConfig(&config);
+		if (PyStatus_Exception(status)) goto fail;
+
+		PyConfig_Clear(&config);
+
 	}
+
+	if (Py_IsInitialized()) {
+		blog(LOG_INFO, "Python interpreter initialized successfully");
+		this->start_button->setEnabled(true);
+	} else {
+		blog(LOG_INFO, "Failed to initialize Python interpreter");
+	}
+	return;
+
+	fail:
+	    blog(LOG_ERROR, "Python initialization failed");
 
 	if (Py_IsInitialized()) {
 		blog(LOG_INFO, "Python interpreter initialized successfully");
