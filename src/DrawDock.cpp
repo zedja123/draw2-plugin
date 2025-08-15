@@ -159,52 +159,39 @@ void DrawDock::initialize_python_interpreter()
 		QSettings settings = QSettings("HichTala", "Draw2");
 		QByteArray pyHome = settings.value("python_path", "").toString().toUtf8();
 		QFileInfo pyHomeInfo(QString::fromUtf8(pyHome));
-		if (!pyHomeInfo.exists()) {
-			blog(LOG_INFO, "Failed to initialize Python interpreter: PyHome does not exist");
-			return;
-		}
-		if (!pyHomeInfo.isDir()) {
-			blog(LOG_INFO, "Failed to initialize Python interpreter: PyHome is not a directory");
+		if (!pyHomeInfo.exists() || !pyHomeInfo.isDir()) {
+			blog(LOG_INFO, "Failed to initialize Python interpreter");
 			return;
 		}
 
 		QString pythonVersion;
-		{
-#ifdef _WIN32
-			FILE *pipe = _popen(
-				"python -c \"import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')\"",
-				"r");
-#else
-			FILE *pipe = popen(
-				"python3 -c \"import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')\"",
-				"r");
-#endif
-			if (!pipe) {
-				blog(LOG_ERROR, "Failed to retrieve Python version");
-				return;
-			}
-			char buffer[128];
-			if (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-				pythonVersion = QString::fromUtf8(buffer).trimmed();
-			}
-#ifdef _WIN32
-			_pclose(pipe);
-#else
-			pclose(pipe);
-#endif
-		}
 
+#ifdef _WIN32
+		QString sitePackagesPath = pyHome + "/Lib/site-packages";
+		QFileInfo sitePackagesPathInfo(sitePackagesPath);
+#else
+		FILE *pipe = popen(
+			"python3 -c \"import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')\"",
+			"r");
+		if (!pipe) {
+			blog(LOG_ERROR, "Failed to retrieve Python version");
+			return;
+		}
+		char buffer[128];
+		if (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+			pythonVersion = QString::fromUtf8(buffer).trimmed();
+		}
+		pclose(pipe);
 		QString sitePackagesPath = pyHome + "/lib/python" + pythonVersion + "/site-packages";
 		QFileInfo sitePackagesPathInfo(sitePackagesPath);
-		if (!sitePackagesPathInfo.exists()) {
-			blog(LOG_INFO, "Failed to initialize Python interpreter: site-packages path does not exist");
+#endif
+
+
+		if (!sitePackagesPathInfo.exists() || !sitePackagesPathInfo.isDir()) {
+			blog(LOG_INFO, "Failed to initialize Python interpreter");
 			return;
 		}
-		if (!sitePackagesPathInfo.isDir()) {
-			blog(LOG_INFO,
-			     "Failed to initialize Python interpreter: site-packages path is not a directory");
-			return;
-		}
+
 		blog(LOG_INFO, "Initializing Python interpreter with home: %s", pyHome.toStdString().c_str());
 		blog(LOG_INFO, "Initializing Python interpreter with site packages: %s",
 		     sitePackagesPath.toStdString().c_str());
