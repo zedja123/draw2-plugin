@@ -2,7 +2,14 @@
 // Created by HichTala on 21/06/25.
 //
 #define PY_SSIZE_T_CLEAN
+
 #include <Python.h>
+#include <stdio.h>
+#include <wchar.h>
+#ifdef _WIN32
+#include <windows.h>
+#include <tchar.h>
+#endif
 
 #include "DrawDock.hpp"
 
@@ -164,15 +171,60 @@ void DrawDock::initialize_python_interpreter()
 			return;
 		}
 
-		QString pythonVersion;
-
 #ifdef _WIN32
-		QString sitePackagesPath = pyHome + "/Lib/site-packages";
-		QFileInfo sitePackagesPathInfo(sitePackagesPath);
+		wchar_t pythonPath[MAX_PATH * 3];
+		wchar_t pythonExe[MAX_PATH];
+		wchar_t pythonHome[MAX_PATH];
+
+		wcsncpy(pythonHome, QString::fromUtf8(pyHome).toStdWString().c_str(),
+			sizeof(pythonHome) / sizeof(wchar_t));
+
+		pythonHome[sizeof(pythonHome) / sizeof(wchar_t) - 1] = L'\0';
+
+		_snwprintf_s(
+		    pythonExe,
+		    _countof(pythonExe),
+		    _TRUNCATE,
+		    L"%s\\python.exe",
+		    pythonHome
+		);
+
+		// Build pythonPath = "<pythonHome>\\Lib;<pythonHome>\\DLLs;<pythonHome>\\Lib\\site-packages"
+		_snwprintf_s(
+		    pythonPath,
+		    _countof(pythonPath),
+		    _TRUNCATE,
+		    L"%s\\Lib;%s\\DLLs;%s\\Lib\\site-packages",
+		    pythonHome,
+		    pythonHome,
+		    pythonHome
+		);
+
+		blog(LOG_INFO, "Python Home: %ls", pythonHome);
+		blog(LOG_INFO, "Python Path: %ls", pythonPath);
+		blog(LOG_INFO, "Python Executable: %ls", pythonExe);
+
+		PyConfig config;
+		PyConfig_InitPythonConfig(&config);
+		PyConfig_SetString(&config, &config.executable, pythonExe);
+		PyConfig_SetString(&config, &config.home, pythonHome);
+		PyConfig_SetString(&config, &config.pythonpath_env, pythonPath);
+
+		PyStatus status = Py_InitializeFromConfig(&config);
+		if (PyStatus_Exception(status) || !Py_IsInitialized())
+		{
+			PyConfig_Clear(&config);
+			return;
+		}
+
+		PyConfig_Clear(&config);
+
+		// QString sitePackagesPath = pyHome + "/Lib/site-packages";
+		// QFileInfo sitePackagesPathInfo(sitePackagesPath);
 #else
+		QString pythonVersion;
 		FILE *pipe = popen(
-			"python3 -c \"import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')\"",
-			"r");
+			"python3 -c \"import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')\"", "r");
 		if (!pipe) {
 			blog(LOG_ERROR, "Failed to retrieve Python version");
 			return;
@@ -185,7 +237,6 @@ void DrawDock::initialize_python_interpreter()
 		QString sitePackagesPath = pyHome + "/lib/python" + pythonVersion + "/site-packages";
 		QFileInfo sitePackagesPathInfo(sitePackagesPath);
 #endif
-
 
 		if (!sitePackagesPathInfo.exists() || !sitePackagesPathInfo.isDir()) {
 			blog(LOG_INFO, "Failed to initialize Python interpreter");
