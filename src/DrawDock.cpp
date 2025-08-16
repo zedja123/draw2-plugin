@@ -182,9 +182,9 @@ void DrawDock::initialize_python_interpreter()
 			sizeof(pythonHome) / sizeof(wchar_t));
 		pythonHome[sizeof(pythonHome) / sizeof(wchar_t) - 1] = L'\0';
 
-		wcsncpy(pythonPath, QString::fromUtf8(pyPath).toStdWString().c_str(),
-			sizeof(pythonPath) / sizeof(wchar_t));
-		pythonPath[sizeof(pythonPath) / sizeof(wchar_t) - 1] = L'\0';
+		// wcsncpy(pythonPath, QString::fromUtf8(pyPath).toStdWString().c_str(),
+		// 	sizeof(pythonPath) / sizeof(wchar_t));
+		// pythonPath[sizeof(pythonPath) / sizeof(wchar_t) - 1] = L'\0';
 
 		wcsncpy(pythonExe, QString::fromUtf8(pyExe).toStdWString().c_str(),
 			sizeof(pythonExe) / sizeof(wchar_t));
@@ -206,12 +206,12 @@ void DrawDock::initialize_python_interpreter()
 			PyConfig_Clear(&config);
 			return;
 		}
-		std::wstring pythonPathW(pythonPath);
-
-		std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
-		std::string pythonPathUtf8 = conv.to_bytes(pythonPathW);
-		std::string cmd = "import sys; sys.path.append(r'" + pythonPathUtf8 + "')";
-		PyRun_SimpleString(cmd.c_str());
+		// std::wstring pythonPathW(pythonPath);
+		//
+		// std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+		// std::string pythonPathUtf8 = conv.to_bytes(pythonPathW);
+		// std::string cmd = "import sys; sys.path.append(r'" + pythonPathUtf8 + "')";
+		// PyRun_SimpleString(cmd.c_str());
 
 		PyConfig_Clear(&config);
 		// #ifdef _WIN32
