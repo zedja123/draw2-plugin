@@ -171,21 +171,24 @@ void DrawDock::initialize_python_interpreter()
 			return;
 		}
 
-#ifdef _WIN32
-		wchar_t pythonPath[MAX_PATH * 3];
-		wchar_t pythonExe[MAX_PATH];
-		wchar_t pythonHome[MAX_PATH];
+		QByteArray pyPath = pyHome + "/Lib/site-packages";
+		QByteArray pyExe = pyHome + "/python.exe";
+
+		wchar_t pythonPath[256 * 3];
+		wchar_t pythonExe[256];
+		wchar_t pythonHome[256];
 
 		wcsncpy(pythonHome, QString::fromUtf8(pyHome).toStdWString().c_str(),
 			sizeof(pythonHome) / sizeof(wchar_t));
-
 		pythonHome[sizeof(pythonHome) / sizeof(wchar_t) - 1] = L'\0';
 
-		_snwprintf_s(pythonExe, _countof(pythonExe), _TRUNCATE, L"%s\\python.exe", pythonHome);
+		wcsncpy(pythonPath, QString::fromUtf8(pyPath).toStdWString().c_str(),
+			sizeof(pythonPath) / sizeof(wchar_t));
+		pythonPath[sizeof(pythonPath) / sizeof(wchar_t) - 1] = L'\0';
 
-		// Build pythonPath = "<pythonHome>\\Lib;<pythonHome>\\DLLs;<pythonHome>\\Lib\\site-packages"
-		_snwprintf_s(pythonPath, _countof(pythonPath), _TRUNCATE, L"%s\\Lib;%s\\DLLs;%s\\Lib\\site-packages",
-			     pythonHome, pythonHome, pythonHome);
+		wcsncpy(pythonExe, QString::fromUtf8(pyExe).toStdWString().c_str(),
+			sizeof(pythonExe) / sizeof(wchar_t));
+		pythonExe[sizeof(pythonExe) / sizeof(wchar_t) - 1] = L'\0';
 
 		blog(LOG_INFO, "Python Home: %ls", pythonHome);
 		blog(LOG_INFO, "Python Path: %ls", pythonPath);
@@ -199,43 +202,74 @@ void DrawDock::initialize_python_interpreter()
 
 		PyStatus status = Py_InitializeFromConfig(&config);
 		if (PyStatus_Exception(status) || !Py_IsInitialized()) {
+			blog(LOG_INFO, "Failed to initialize Python interpreter");
 			PyConfig_Clear(&config);
 			return;
 		}
 
 		PyConfig_Clear(&config);
-
-		// QString sitePackagesPath = pyHome + "/Lib/site-packages";
-		// QFileInfo sitePackagesPathInfo(sitePackagesPath);
-#else
-		QString pythonVersion;
-		FILE *pipe = popen(
-			"python3 -c \"import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')\"", "r");
-		if (!pipe) {
-			blog(LOG_ERROR, "Failed to retrieve Python version");
-			return;
-		}
-		char buffer[128];
-		if (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-			pythonVersion = QString::fromUtf8(buffer).trimmed();
-		}
-		pclose(pipe);
-		QString sitePackagesPath = pyHome + "/lib/python" + pythonVersion + "/site-packages";
-		QFileInfo sitePackagesPathInfo(sitePackagesPath);
-
-		if (!sitePackagesPathInfo.exists() || !sitePackagesPathInfo.isDir()) {
-			blog(LOG_INFO, "Failed to initialize Python interpreter");
-			return;
-		}
-
-		blog(LOG_INFO, "Initializing Python interpreter with home: %s", pyHome.toStdString().c_str());
-		blog(LOG_INFO, "Initializing Python interpreter with site packages: %s",
-		     sitePackagesPath.toStdString().c_str());
-		qputenv("PYTHONHOME", QByteArray(pyHome));
-		qputenv("PYTHONPATH", QByteArray(sitePackagesPath.toUtf8()));
-
-#endif
-		Py_Initialize();
+// #ifdef _WIN32
+//
+// 		wcsncpy(pythonHome, QString::fromUtf8(pyHome).toStdWString().c_str(),
+// 			sizeof(pythonHome) / sizeof(wchar_t));
+//
+// 		pythonHome[sizeof(pythonHome) / sizeof(wchar_t) - 1] = L'\0';
+//
+// 		_snwprintf_s(pythonExe, _countof(pythonExe), _TRUNCATE, L"%s\\python.exe", pythonHome);
+//
+// 		// Build pythonPath = "<pythonHome>\\Lib;<pythonHome>\\DLLs;<pythonHome>\\Lib\\site-packages"
+// 		_snwprintf_s(pythonPath, _countof(pythonPath), _TRUNCATE, L"%s\\Lib;%s\\DLLs;%s\\Lib\\site-packages",
+// 			     pythonHome, pythonHome, pythonHome);
+//
+// 		blog(LOG_INFO, "Python Home: %ls", pythonHome);
+// 		blog(LOG_INFO, "Python Path: %ls", pythonPath);
+// 		blog(LOG_INFO, "Python Executable: %ls", pythonExe);
+//
+// 		PyConfig config;
+// 		PyConfig_InitPythonConfig(&config);
+// 		PyConfig_SetString(&config, &config.executable, pythonExe);
+// 		PyConfig_SetString(&config, &config.home, pythonHome);
+// 		PyConfig_SetString(&config, &config.pythonpath_env, pythonPath);
+//
+// 		PyStatus status = Py_InitializeFromConfig(&config);
+// 		if (PyStatus_Exception(status) || !Py_IsInitialized()) {
+// 			PyConfig_Clear(&config);
+// 			return;
+// 		}
+//
+// 		PyConfig_Clear(&config);
+//
+// 		// QString sitePackagesPath = pyHome + "/Lib/site-packages";
+// 		// QFileInfo sitePackagesPathInfo(sitePackagesPath);
+// #else
+// 		QString pythonVersion;
+// 		FILE *pipe = popen(
+// 			"python3 -c \"import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')\"", "r");
+// 		if (!pipe) {
+// 			blog(LOG_ERROR, "Failed to retrieve Python version");
+// 			return;
+// 		}
+// 		char buffer[128];
+// 		if (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+// 			pythonVersion = QString::fromUtf8(buffer).trimmed();
+// 		}
+// 		pclose(pipe);
+// 		QString sitePackagesPath = pyHome + "/lib/python" + pythonVersion + "/site-packages";
+// 		QFileInfo sitePackagesPathInfo(sitePackagesPath);
+//
+// 		if (!sitePackagesPathInfo.exists() || !sitePackagesPathInfo.isDir()) {
+// 			blog(LOG_INFO, "Failed to initialize Python interpreter");
+// 			return;
+// 		}
+//
+// 		blog(LOG_INFO, "Initializing Python interpreter with home: %s", pyHome.toStdString().c_str());
+// 		blog(LOG_INFO, "Initializing Python interpreter with site packages: %s",
+// 		     sitePackagesPath.toStdString().c_str());
+// 		qputenv("PYTHONHOME", QByteArray(pyHome));
+// 		qputenv("PYTHONPATH", QByteArray(sitePackagesPath.toUtf8()));
+//
+// 		Py_Initialize();
+// #endif
 	}
 
 	if (Py_IsInitialized()) {
