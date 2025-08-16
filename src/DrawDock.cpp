@@ -181,24 +181,11 @@ void DrawDock::initialize_python_interpreter()
 
 		pythonHome[sizeof(pythonHome) / sizeof(wchar_t) - 1] = L'\0';
 
-		_snwprintf_s(
-		    pythonExe,
-		    _countof(pythonExe),
-		    _TRUNCATE,
-		    L"%s\\python.exe",
-		    pythonHome
-		);
+		_snwprintf_s(pythonExe, _countof(pythonExe), _TRUNCATE, L"%s\\python.exe", pythonHome);
 
 		// Build pythonPath = "<pythonHome>\\Lib;<pythonHome>\\DLLs;<pythonHome>\\Lib\\site-packages"
-		_snwprintf_s(
-		    pythonPath,
-		    _countof(pythonPath),
-		    _TRUNCATE,
-		    L"%s\\Lib;%s\\DLLs;%s\\Lib\\site-packages",
-		    pythonHome,
-		    pythonHome,
-		    pythonHome
-		);
+		_snwprintf_s(pythonPath, _countof(pythonPath), _TRUNCATE, L"%s\\Lib;%s\\DLLs;%s\\Lib\\site-packages",
+			     pythonHome, pythonHome, pythonHome);
 
 		blog(LOG_INFO, "Python Home: %ls", pythonHome);
 		blog(LOG_INFO, "Python Path: %ls", pythonPath);
@@ -211,8 +198,7 @@ void DrawDock::initialize_python_interpreter()
 		PyConfig_SetString(&config, &config.pythonpath_env, pythonPath);
 
 		PyStatus status = Py_InitializeFromConfig(&config);
-		if (PyStatus_Exception(status) || !Py_IsInitialized())
-		{
+		if (PyStatus_Exception(status) || !Py_IsInitialized()) {
 			PyConfig_Clear(&config);
 			return;
 		}
