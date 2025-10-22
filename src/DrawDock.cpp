@@ -173,9 +173,10 @@ void DrawDock::initialize_python_interpreter() const
 	blog(LOG_INFO, "Initializing Python interpreter ");
 
 	this->start_button->setDisabled(true);
-
-	wchar_t pythonExe[256];
+#ifndef _WIN32
 	wchar_t pythonPath[512];
+#endif
+	wchar_t pythonExe[256];
 	wchar_t pythonHome[256];
 	if (!Py_IsInitialized()) {
 
