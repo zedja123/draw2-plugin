@@ -228,12 +228,12 @@ void DrawDock::initialize_python_interpreter() const
 
 		PyConfig config;
 		PyConfig_InitPythonConfig(&config);
-		config.isolated = 1;
 
 		PyConfig_SetString(&config, &config.executable, pythonExe);
 		PyConfig_SetString(&config, &config.home, pythonHome);
 
 		putenv(("PYTHONHOME=" + std::string(pyHome)).data());
+		putenv(("PYTHONPATH=" + std::string(pyHome) + "/python312.zip;" + std::string(pyHome)).data());
 
 		const char* pyhome_env = getenv("PYTHONHOME");
 		const char* pypath_env = getenv("PYTHONPATH");
