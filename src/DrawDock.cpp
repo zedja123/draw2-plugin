@@ -240,6 +240,7 @@ void DrawDock::initialize_python_interpreter() const
 		if (PyStatus_Exception(status) || !Py_IsInitialized()) {
 
 			blog(LOG_INFO, "Failed to initialize Python interpreter: %s", status.err_msg);
+			blog(LOG_INFO, "Failed to initialize Python interpreter: %s", status.func);
 			PyConfig_Clear(&config);
 			if (PyStatus_IsExit(status)) {
 				blog(LOG_INFO, "Failed to initialize Python interpreter: %d", status.exitcode);
