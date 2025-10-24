@@ -85,6 +85,10 @@ void DrawDock::StartPythonDraw()
 	this->model_ready.store(false);
 
 	blog(LOG_INFO, "Starting python thread for Draw2 backend");
+	if (Py_IsInitialized()) {
+		blog(LOG_ERROR, "Python interpreter is initialized.");
+		return;
+	}
 
 	this->python_thread = std::thread([this]() {
 		PyGILState_STATE gstate = PyGILState_Ensure();
