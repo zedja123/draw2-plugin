@@ -86,7 +86,7 @@ void DrawDock::StartPythonDraw()
 
 	blog(LOG_INFO, "Starting python thread for Draw2 backend");
 	if (Py_IsInitialized()) {
-		blog(LOG_ERROR, "Python interpreter is initialized.");
+		blog(LOG_INFO, "Python interpreter is initialized.");
 		return;
 	}
 
