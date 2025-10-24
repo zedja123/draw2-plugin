@@ -144,23 +144,23 @@ void DrawDock::StartPythonDraw()
 		PyGILState_Release(gstate);
 		this->running_flag.store(false);
 	});
-	std::thread([this]() {
-		for (int i = 0; i < 1000; ++i) {
-			if (this->model_ready.load()) {
-				blog(LOG_INFO, "Spam");
-				this->start_button->setEnabled(true);
-				this->start_button->setText("Stop Draw");
-				blog(LOG_INFO, "Draw2 python backend started successfully");
-				break;
-			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		}
-		blog(LOG_INFO, "Draw2 python backend failed to start in time");
-		if (!this->start_button->isEnabled()) {
-			this->start_button->setDisabled(true);
-			this->start_button->setText("Start Draw");
-		}
-	}).detach();
+	// std::thread([this]() {
+	// 	for (int i = 0; i < 1000; ++i) {
+	// 		if (this->model_ready.load()) {
+	// 			blog(LOG_INFO, "Spam");
+	// 			this->start_button->setEnabled(true);
+	// 			this->start_button->setText("Stop Draw");
+	// 			blog(LOG_INFO, "Draw2 python backend started successfully");
+	// 			break;
+	// 		}
+	// 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	// 	}
+	// 	blog(LOG_INFO, "Draw2 python backend failed to start in time");
+	// 	if (!this->start_button->isEnabled()) {
+	// 		this->start_button->setDisabled(true);
+	// 		this->start_button->setText("Start Draw");
+	// 	}
+	// }).detach();
 }
 
 void DrawDock::StopPythonDraw()
@@ -269,11 +269,11 @@ void DrawDock::initialize_python_interpreter() const
 	}
 
 	if (Py_IsInitialized()) {
-		// PyObject *pModule = PyImport_ImportModule("draw");
-		// if (!pModule) {
-		// 	blog(LOG_ERROR, "Failed to import draw_module.");
-		// 	return;
-		// }
+		PyObject *pModule = PyImport_ImportModule("draw");
+		if (!pModule) {
+			blog(LOG_ERROR, "Failed to import draw_module.");
+			return;
+		}
 		blog(LOG_INFO, "Python interpreter initialized successfully");
 		this->start_button->setEnabled(true);
 	} else {
