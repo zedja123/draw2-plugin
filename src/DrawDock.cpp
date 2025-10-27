@@ -246,9 +246,9 @@ void DrawDock::initialize_python_interpreter() const
 		PyConfig_SetString(&config, &config.home, pythonHome);
 
 		putenv(("PYTHONHOME=" + std::string(pyHome)).data());
-		// putenv(("PYTHONPATH=" + std::string(pyHome) + "/python312.zip;" + std::string(pyHome) +
-		// 	"/Lib/site-packages;" + std::string(pyHome))
-		// 	       .data());
+		putenv(("PYTHONPATH=" + std::string(pyHome) + "/python312.zip;" + std::string(pyHome) +
+			"/Lib/site-packages;" + std::string(pyHome))
+			       .data());
 
 		const char *pyhome_env = getenv("PYTHONHOME");
 		const char *pypath_env = getenv("PYTHONPATH");
@@ -275,6 +275,22 @@ void DrawDock::initialize_python_interpreter() const
 	}
 
 	if (Py_IsInitialized()) {
+
+		PyObject *sys = PyImport_ImportModule("sys");
+		if (sys) {
+			PyObject *path = PyObject_GetAttrString(sys, "path");
+			if (path) {
+				PyObject *repr = PyObject_Repr(path);
+				if (repr) {
+					const char *s = PyUnicode_AsUTF8(repr);
+					blog(LOG_INFO, "sys.path: %s", s ? s : "(null)");
+					Py_XDECREF(repr);
+				}
+				Py_XDECREF(path);
+			}
+			Py_XDECREF(sys);
+		}
+
 		PyObject *pModule = PyImport_ImportModule("cv2");
 		if (!pModule) {
 			blog(LOG_ERROR, "Failed to import draw module; printing Python error:");
@@ -345,22 +361,6 @@ void DrawDock::initialize_python_interpreter() const
 				}
 				Py_XDECREF(find_spec);
 				Py_XDECREF(importlib_util);
-			}
-
-			// Log sys.path to help debug which paths are considered
-			PyObject *sys = PyImport_ImportModule("sys");
-			if (sys) {
-				PyObject *path = PyObject_GetAttrString(sys, "path");
-				if (path) {
-					PyObject *repr = PyObject_Repr(path);
-					if (repr) {
-						const char *s = PyUnicode_AsUTF8(repr);
-						blog(LOG_INFO, "sys.path: %s", s ? s : "(null)");
-						Py_XDECREF(repr);
-					}
-					Py_XDECREF(path);
-				}
-				Py_XDECREF(sys);
 			}
 
 			return;
