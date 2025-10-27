@@ -94,6 +94,7 @@ void DrawDock::StartPythonDraw()
 
 	// this->python_thread = std::thread([this]() {
 	std::thread([this]() {
+		blog(LOG_INFO, "Starting Draw2 python backend");
 		PyGILState_STATE gstate = PyGILState_Ensure();
 		blog(LOG_INFO, "Starting Draw2 python backend");
 
