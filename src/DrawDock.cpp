@@ -278,7 +278,49 @@ void DrawDock::initialize_python_interpreter() const
 		PyObject *pModule = PyImport_ImportModule("draw");
 		if (!pModule) {
 			blog(LOG_ERROR, "Failed to import draw module; printing Python error:");
-			PyErr_Print(); // send full Python traceback to stderr
+
+			// Try to get a full formatted traceback using the Python traceback module
+			PyObject *ptype = nullptr, *pvalue = nullptr, *ptraceback = nullptr;
+			PyErr_Fetch(&ptype, &pvalue, &ptraceback);
+			PyErr_NormalizeException(&ptype, &pvalue, &ptraceback);
+
+			PyObject *traceback_mod = PyImport_ImportModule("traceback");
+			if (traceback_mod) {
+				PyObject *format_exception = PyObject_GetAttrString(traceback_mod, "format_exception");
+				if (format_exception && PyCallable_Check(format_exception)) {
+					PyObject *exc_list = PyObject_CallFunctionObjArgs(
+						format_exception, ptype ? ptype : Py_None, pvalue ? pvalue : Py_None,
+						ptraceback ? ptraceback : Py_None, NULL);
+					if (exc_list) {
+						PyObject *sep = PyUnicode_FromString("");
+						PyObject *exc_str = PyUnicode_Join(sep, exc_list);
+						if (exc_str) {
+							const char *err_s = PyUnicode_AsUTF8(exc_str);
+							blog(LOG_ERROR, "Python exception:\n%s",
+							     err_s ? err_s : "(null)");
+							Py_XDECREF(exc_str);
+						} else {
+							// fallback
+							PyErr_Print();
+						}
+						Py_XDECREF(sep);
+						Py_XDECREF(exc_list);
+					} else {
+						PyErr_Print();
+					}
+					Py_XDECREF(format_exception);
+				} else {
+					PyErr_Print();
+				}
+				Py_XDECREF(traceback_mod);
+			} else {
+				// If importing traceback failed, fall back to PyErr_Print
+				PyErr_Print();
+			}
+
+			Py_XDECREF(ptype);
+			Py_XDECREF(pvalue);
+			Py_XDECREF(ptraceback);
 
 			blog(LOG_ERROR, "Try to locate where Python would load 'draw' from");
 			PyObject *importlib_util = PyImport_ImportModule("importlib.util");
@@ -290,7 +332,8 @@ void DrawDock::initialize_python_interpreter() const
 						PyObject *origin = PyObject_GetAttrString(spec, "origin");
 						if (origin) {
 							const char *origin_s = PyUnicode_AsUTF8(origin);
-							blog(LOG_INFO, "draw spec origin: %s", origin_s ? origin_s : "(null)");
+							blog(LOG_INFO, "draw spec origin: %s",
+							     origin_s ? origin_s : "(null)");
 							Py_XDECREF(origin);
 						} else {
 							blog(LOG_INFO, "draw spec has no origin");
