@@ -102,12 +102,6 @@ void DrawDock::StartPythonDraw()
 		if (pModule) {
 			blog(LOG_INFO, "draw module imported successfully");
 			PyObject *pFunc = PyObject_GetAttrString(pModule, "run");
-			if (pFunc) {
-				blog(LOG_INFO, "pfunc");
-			}
-			if (PyCallable_Check(pFunc)) {
-				blog(LOG_INFO, "pfunc is callable");
-			}
 			if (pFunc && PyCallable_Check(pFunc)) {
 				blog(LOG_INFO, "Running python thread");
 				PyObject *args = PyTuple_New(6);
@@ -282,6 +276,54 @@ void DrawDock::initialize_python_interpreter() const
 
 	if (Py_IsInitialized()) {
 		PyObject *pModule = PyImport_ImportModule("draw");
+		if (!pModule) {
+			blog(LOG_ERROR, "Failed to import draw module; printing Python error:");
+			PyErr_Print(); // send full Python traceback to stderr
+
+			// Try to locate where Python would load 'draw' from
+			PyObject *importlib_util = PyImport_ImportModule("importlib.util");
+			if (importlib_util) {
+				PyObject *find_spec = PyObject_GetAttrString(importlib_util, "find_spec");
+				if (find_spec && PyCallable_Check(find_spec)) {
+					PyObject *spec = PyObject_CallFunction(find_spec, "s", "draw");
+					if (spec && spec != Py_None) {
+						PyObject *origin = PyObject_GetAttrString(spec, "origin");
+						if (origin) {
+							const char *origin_s = PyUnicode_AsUTF8(origin);
+							blog(LOG_INFO, "draw spec origin: %s", origin_s ? origin_s : "(null)");
+							Py_XDECREF(origin);
+						} else {
+							blog(LOG_INFO, "draw spec has no origin");
+						}
+						Py_XDECREF(spec);
+					} else {
+						blog(LOG_INFO, "draw spec not found or is None");
+					}
+				}
+				Py_XDECREF(find_spec);
+				Py_XDECREF(importlib_util);
+			}
+
+			// Log sys.path to help debug which paths are considered
+			PyObject *sys = PyImport_ImportModule("sys");
+			if (sys) {
+				PyObject *path = PyObject_GetAttrString(sys, "path");
+				if (path) {
+					PyObject *repr = PyObject_Repr(path);
+					if (repr) {
+						const char *s = PyUnicode_AsUTF8(repr);
+						blog(LOG_INFO, "sys.path: %s", s ? s : "(null)");
+						Py_XDECREF(repr);
+					}
+					Py_XDECREF(path);
+				}
+				Py_XDECREF(sys);
+			}
+
+			return;
+		}
+		Py_XDECREF(pModule);
+		blog(LOG_INFO, "Python interpreter initialized successfully");
 		if (!pModule) {
 			blog(LOG_ERROR, "Failed to import draw_module.");
 			return;
