@@ -102,6 +102,12 @@ void DrawDock::StartPythonDraw()
 		if (pModule) {
 			blog(LOG_INFO, "draw module imported successfully");
 			PyObject *pFunc = PyObject_GetAttrString(pModule, "run");
+			if (pFunc) {
+				blog(LOG_INFO, "pfunc");
+			}
+			if (PyCallable_Check(pFunc)) {
+				blog(LOG_INFO, "pfunc is callable");
+			}
 			if (pFunc && PyCallable_Check(pFunc)) {
 				blog(LOG_INFO, "Running python thread");
 				PyObject *args = PyTuple_New(6);
@@ -282,8 +288,9 @@ void DrawDock::initialize_python_interpreter() const
 		}
 		Py_XDECREF(pModule);
 		blog(LOG_INFO, "Python interpreter initialized successfully");
-		// Release the GIL so std::thread workers can acquire it with PyGILState_Ensure()
+#ifdef _WIN32
 		PyEval_SaveThread();
+#endif
 		this->start_button->setEnabled(true);
 	} else {
 		blog(LOG_INFO, "Failed to initialize Python interpreter");
