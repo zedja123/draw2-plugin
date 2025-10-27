@@ -93,68 +93,71 @@ void DrawDock::StartPythonDraw()
 	}
 
 	// this->python_thread = std::thread([this]() {
-std::thread t([this]() {
-	blog(LOG_INFO, "Starting Draw2 python backend (thread entry)");
-	try {
-		PyGILState_STATE gstate = PyGILState_Ensure();
-		blog(LOG_INFO, "Acquired GIL in Draw2 thread");
+	std::thread t([this]() {
+		blog(LOG_INFO, "Starting Draw2 python backend (thread entry)");
+		try {
+			PyGILState_STATE gstate = PyGILState_Ensure();
+			blog(LOG_INFO, "Acquired GIL in Draw2 thread");
 
-		PyObject *pModule = PyImport_ImportModule("draw");
-		if (!pModule) {
-			blog(LOG_ERROR, "Failed to import draw module in thread");
-		} else {
-			blog(LOG_INFO, "draw module imported successfully (thread)");
-			PyObject *pFunc = PyObject_GetAttrString(pModule, "run");
-			if (pFunc && PyCallable_Check(pFunc)) {
-				blog(LOG_INFO, "Running python thread");
-				PyObject *args = PyTuple_New(6);
-				PyObject *capsule_stop = PyCapsule_New(static_cast<void*>(&this->should_run), "stop_flag", nullptr);
-				PyTuple_SetItem(args, 0, capsule_stop);
-
-				PyObject *capsule_ready = PyCapsule_New(static_cast<void*>(&this->model_ready), "model_ready", nullptr);
-				PyTuple_SetItem(args, 1, capsule_ready);
-
-				QSettings settings = QSettings("HichTala", "Draw2");
-
-				QByteArray deck_list_path1 = settings.value("deck_list1", "").toString().toUtf8();
-				QByteArray deck_list_path2 = settings.value("deck_list2", "").toString().toUtf8();
-				QByteArray deck_list_path3 = settings.value("deck_list3", "").toString().toUtf8();
-				const char *plugin_dir = get_plugin_path();
-				std::string decks = std::string(plugin_dir) + "/decklists/" + std::string(deck_list_path1) + ";" +
-				                    std::string(plugin_dir) + "/decklists/" + std::string(deck_list_path2) + ";" +
-				                    std::string(plugin_dir) + "/decklists/" + std::string(deck_list_path3) + ";";
-				PyTuple_SetItem(args, 2, PyUnicode_FromString(decks.c_str()));
-
-				int minimum_out_of_screen_time_value =
-					settings.value("minimum_out_of_screen_time", 25).value<int>();
-				PyTuple_SetItem(args, 3, PyLong_FromLong(minimum_out_of_screen_time_value));
-
-				int minimum_screen_time_value = settings.value("minimum_screen_time", 6).value<int>();
-				PyTuple_SetItem(args, 4, PyLong_FromLong(minimum_screen_time_value));
-
-				int confidence_value = settings.value("confidence_slider", 5).value<int>();
-				PyTuple_SetItem(args, 5, PyLong_FromLong(confidence_value));
-
-				PyObject_CallObject(pFunc, args);
-				Py_DECREF(args);
+			PyObject *pModule = PyImport_ImportModule("draw");
+			if (!pModule) {
+				blog(LOG_ERROR, "Failed to import draw module in thread");
 			} else {
-				blog(LOG_ERROR, "Failed to find or call start_draw function.");
+				blog(LOG_INFO, "draw module imported successfully (thread)");
+				PyObject *pFunc = PyObject_GetAttrString(pModule, "run");
+				if (pFunc && PyCallable_Check(pFunc)) {
+					blog(LOG_INFO, "Running python thread");
+					PyObject *args = PyTuple_New(6);
+					PyObject *capsule_stop = PyCapsule_New(static_cast<void *>(&this->should_run),
+									       "stop_flag", nullptr);
+					PyTuple_SetItem(args, 0, capsule_stop);
+
+					PyObject *capsule_ready = PyCapsule_New(static_cast<void *>(&this->model_ready),
+										"model_ready", nullptr);
+					PyTuple_SetItem(args, 1, capsule_ready);
+
+					QSettings settings = QSettings("HichTala", "Draw2");
+
+					QByteArray deck_list_path1 =
+						settings.value("deck_list1", "").toString().toUtf8();
+					QByteArray deck_list_path2 =
+						settings.value("deck_list2", "").toString().toUtf8();
+					QByteArray deck_list_path3 =
+						settings.value("deck_list3", "").toString().toUtf8();
+					const char *plugin_dir = get_plugin_path();
+					std::string decks =
+						std::string(plugin_dir) + "/decklists/" + std::string(deck_list_path1) +
+						";" + std::string(plugin_dir) + "/decklists/" +
+						std::string(deck_list_path2) + ";" + std::string(plugin_dir) +
+						"/decklists/" + std::string(deck_list_path3) + ";";
+					PyTuple_SetItem(args, 2, PyUnicode_FromString(decks.c_str()));
+
+					int minimum_out_of_screen_time_value =
+						settings.value("minimum_out_of_screen_time", 25).value<int>();
+					PyTuple_SetItem(args, 3, PyLong_FromLong(minimum_out_of_screen_time_value));
+
+					int minimum_screen_time_value =
+						settings.value("minimum_screen_time", 6).value<int>();
+					PyTuple_SetItem(args, 4, PyLong_FromLong(minimum_screen_time_value));
+
+					int confidence_value = settings.value("confidence_slider", 5).value<int>();
+					PyTuple_SetItem(args, 5, PyLong_FromLong(confidence_value));
+
+					PyObject_CallObject(pFunc, args);
+					Py_DECREF(args);
+				} else {
+					blog(LOG_ERROR, "Failed to find or call start_draw function.");
+				}
+				Py_XDECREF(pFunc);
+				Py_XDECREF(pModule);
 			}
-			Py_XDECREF(pFunc);
-			Py_XDECREF(pModule);
+			PyGILState_Release(gstate);
+		} catch (const std::exception &e) {
+			blog(LOG_ERROR, "Exception in Draw2 python thread: %s", e.what());
 		}
-		PyGILState_Release(gstate);
-	} catch (const std::exception &e) {
-		blog(LOG_ERROR, "Exception in Draw2 python thread: %s", e.what());
-	}
-	this->running_flag.store(false);
-});
-if (t.joinable()) {
-	blog(LOG_INFO, "Draw2 python thread created successfully, detaching");
-	t.detach();
-} else {
-	blog(LOG_ERROR, "Failed to create Draw2 python thread (not joinable)");
-}
+		this->running_flag.store(false);
+	});
+	blog(LOG_INFO, "coucou");
 	std::thread([this]() {
 		for (int i = 0; i < 1000; ++i) {
 			if (this->model_ready.load()) {
@@ -171,6 +174,13 @@ if (t.joinable()) {
 			this->start_button->setText("Start Draw");
 		}
 	}).detach();
+	blog(LOG_INFO, "coucou");
+	if (t.joinable()) {
+		blog(LOG_INFO, "Draw2 python thread created successfully, detaching");
+		t.detach();
+	} else {
+		blog(LOG_ERROR, "Failed to create Draw2 python thread (not joinable)");
+	}
 }
 
 void DrawDock::StopPythonDraw()
