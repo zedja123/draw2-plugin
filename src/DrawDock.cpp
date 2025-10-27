@@ -256,9 +256,9 @@ void DrawDock::initialize_python_interpreter() const
 		blog(LOG_INFO, "PYTHONHOME env: %s, PYTHONPATH env: %s, LANG: %s", pyhome_env ? pyhome_env : "(null)",
 		     pypath_env ? pypath_env : "(null)", lang ? lang : "(null)");
 
-#ifndef _WIN32
-		PyConfig_SetString(&config, &config.pythonpath_env, pythonPath);
-#endif
+// #ifndef _WIN32
+		// PyConfig_SetString(&config, &config.pythonpath_env, pythonPath);
+// #endif
 		PyStatus status = Py_InitializeFromConfig(&config);
 		if (PyStatus_Exception(status) || !Py_IsInitialized()) {
 
