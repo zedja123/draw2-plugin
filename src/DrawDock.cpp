@@ -92,7 +92,8 @@ void DrawDock::StartPythonDraw()
 		initialize_python_interpreter();
 	}
 
-	std::thread py_thread([this]() {
+	// this->python_thread = std::thread([this]() {
+	std::thread([this]() {
 		PyGILState_STATE gstate = PyGILState_Ensure();
 		blog(LOG_INFO, "Starting Draw2 python backend");
 
@@ -149,7 +150,7 @@ void DrawDock::StartPythonDraw()
 		}
 		PyGILState_Release(gstate);
 		this->running_flag.store(false);
-	});
+	}).detach();
 	std::thread([this]() {
 		for (int i = 0; i < 1000; ++i) {
 			if (this->model_ready.load()) {
