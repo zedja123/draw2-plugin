@@ -84,7 +84,7 @@ void DrawDock::StartPythonDraw()
 	this->should_run.store(true);
 	this->model_ready.store(false);
 
-	blog(LOG_INFO, "Starting python thread for Draw2 backend");
+	blog(LOG_INFO, "Starting python Draw2");
 	if (Py_IsInitialized()) {
 		blog(LOG_INFO, "Python interpreter is initialized.");
 	} else {
@@ -96,6 +96,7 @@ void DrawDock::StartPythonDraw()
 	std::thread t([this]() {
 		blog(LOG_INFO, "Starting Draw2 python backend (thread entry)");
 		try {
+			blog(LOG_INFO, "Starting python thread");
 			PyGILState_STATE gstate = PyGILState_Ensure();
 			blog(LOG_INFO, "Acquired GIL in Draw2 thread");
 
@@ -155,6 +156,7 @@ void DrawDock::StartPythonDraw()
 		} catch (const std::exception &e) {
 			blog(LOG_ERROR, "Exception in Draw2 python thread: %s", e.what());
 		}
+		blog(LOG_INFO, "Draw2 thread terminated");
 		this->running_flag.store(false);
 	});
 	blog(LOG_INFO, "coucou");
