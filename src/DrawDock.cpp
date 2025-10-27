@@ -275,6 +275,11 @@ void DrawDock::initialize_python_interpreter() const
 	}
 
 	if (Py_IsInitialized()) {
+		PyRun_SimpleString(R"(
+import sys
+sys.path = ['C:\\Program Files\\draw2\\python\\python312.zip', 'C:\\Program Files\\draw2\\python\\Lib\\site-packages', 'C:\\Program Files\\draw2\\python', 'C:\\Program Files\\draw2\\python\\Lib', 'C:\\Program Files\\obs-studio\\bin\\64bit']
+)");
+
 
 		PyObject *sys = PyImport_ImportModule("sys");
 		if (sys) {
