@@ -246,9 +246,15 @@ void DrawDock::initialize_python_interpreter() const
 		PyConfig_SetString(&config, &config.home, pythonHome);
 
 		putenv(("PYTHONHOME=" + std::string(pyHome)).data());
-		putenv(("PYTHONPATH=" + std::string(pyHome) + "/python312.zip;" + std::string(pyHome) +
-			"/Lib/site-packages;" + std::string(pyHome))
-			       .data());
+		putenv((
+		    "PYTHONPATH=" + std::string(pyHome) +
+		    "/python312.zip;" +
+		    std::string(pyHome) + "/DLLs;" +
+		    std::string(pyHome) + "/Lib;" +
+		    std::string(pyHome) + "/Lib/site-packages;" +
+		    std::string(pyHome)
+		).data());
+
 
 		const char *pyhome_env = getenv("PYTHONHOME");
 		const char *pypath_env = getenv("PYTHONPATH");
@@ -256,10 +262,15 @@ void DrawDock::initialize_python_interpreter() const
 		blog(LOG_INFO, "PYTHONHOME env: %s, PYTHONPATH env: %s, LANG: %s", pyhome_env ? pyhome_env : "(null)",
 		     pypath_env ? pypath_env : "(null)", lang ? lang : "(null)");
 
-// #ifndef _WIN32
-		// PyConfig_SetString(&config, &config.pythonpath_env, pythonPath);
-// #endif
+#ifndef _WIN32
+		PyConfig_SetString(&config, &config.pythonpath_env, pythonPath);
+#endif
 		PyStatus status = Py_InitializeFromConfig(&config);
+		// Add cv2 DLL directory
+		std::string cv2Dir = std::string(pyHome) + "/Lib/site-packages/cv2";
+		std::string addDllDirCmd = "import os; os.add_dll_directory(r'" + cv2Dir + "')";
+		PyRun_SimpleString(addDllDirCmd.c_str());
+
 		if (PyStatus_Exception(status) || !Py_IsInitialized()) {
 
 			blog(LOG_INFO, "Failed to initialize Python interpreter: %s", status.err_msg);
@@ -275,6 +286,13 @@ void DrawDock::initialize_python_interpreter() const
 	}
 
 	if (Py_IsInitialized()) {
+		PyRun_SimpleString(R"(
+import sys
+print('PYTHONPATH:', sys.path)
+import cv2
+print('cv2 version:', cv2.__version__)
+)");
+
 		PyObject *pModule = PyImport_ImportModule("cv2");
 		if (!pModule) {
 			blog(LOG_ERROR, "Failed to import draw module; printing Python error:");
