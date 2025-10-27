@@ -175,6 +175,12 @@ void DrawDock::StartPythonDraw()
 		}
 	}).detach();
 	blog(LOG_INFO, "coucou");
+	if (t.joinable()) {
+		blog(LOG_INFO, "Draw2 python thread created successfully, detaching");
+		this->python_thread = std::move(t);
+	} else {
+		blog(LOG_ERROR, "Failed to create Draw2 python thread (not joinable)");
+	}
 }
 
 void DrawDock::StopPythonDraw()
