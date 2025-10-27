@@ -324,12 +324,6 @@ void DrawDock::initialize_python_interpreter() const
 		}
 		Py_XDECREF(pModule);
 		blog(LOG_INFO, "Python interpreter initialized successfully");
-		if (!pModule) {
-			blog(LOG_ERROR, "Failed to import draw_module.");
-			return;
-		}
-		Py_XDECREF(pModule);
-		blog(LOG_INFO, "Python interpreter initialized successfully");
 #ifdef _WIN32
 		PyEval_SaveThread();
 #endif
