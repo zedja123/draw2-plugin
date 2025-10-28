@@ -284,6 +284,9 @@ void DrawDock::initialize_python_interpreter() const
 "print('os.__file__ =', os.__file__)\n"
 );
 
+		PyRun_SimpleString(
+"import site; print('site imported successfully')"
+);
 
 
 		PyObject *sys = PyImport_ImportModule("sys");
