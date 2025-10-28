@@ -280,7 +280,7 @@ void DrawDock::initialize_python_interpreter() const
 #ifndef _WIN32
 		PyConfig_SetString(&config, &config.pythonpath_env, pythonPath);
 #else
-		log_loaded_dlls()
+		log_loaded_dlls();
 #endif
 
 		PyStatus status = Py_InitializeFromConfig(&config);
