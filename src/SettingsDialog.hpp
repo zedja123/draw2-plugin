@@ -6,6 +6,7 @@
 #define SETTINGSPOPUP_HPP
 
 #include "DrawDock.hpp"
+#include "SettingsDialog.hpp"
 
 #include <QDialog>
 #include <QFileDialog>
@@ -13,6 +14,7 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QComboBox>
+#include <obs-module.h>
 
 class SettingsDialog : public QDialog {
 	Q_OBJECT
@@ -28,10 +30,10 @@ private:
 	QSpinBox *minimum_out_of_screen_time = new QSpinBox;
 	QSpinBox *minimum_screen_time = new QSpinBox;
 	QSlider *confidence_slider = new QSlider(Qt::Horizontal);
-	QPushButton *python_browse_button = new QPushButton("Browse");
-	QPushButton *browse_button = new QPushButton("Open Folder");
-	QPushButton *ok_button = new QPushButton("&OK");
-	QPushButton *cancel_button = new QPushButton("&Cancel");
+	QPushButton *python_browse_button = new QPushButton(obs_module_text("browse"));
+	QPushButton *browse_button = new QPushButton(obs_module_text("open_folder"));
+	QPushButton *ok_button = new QPushButton(obs_module_text("ok"));
+	QPushButton *cancel_button = new QPushButton(obs_module_text("cancel"));
 
 	// char *deck_list_path = nullptr;
 	// int minimum_out_of_screen_time_value;

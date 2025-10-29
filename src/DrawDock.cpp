@@ -31,7 +31,7 @@ DrawDock::DrawDock(QWidget *parent) : QWidget(parent)
 	layout->setContentsMargins(5, 4, 5, 4);
 	layout->setSpacing(4);
 
-	this->start_button->setText("Start Draw");
+	this->start_button->setText(obs_module_text("start_draw"));
 	this->start_button->setCheckable(true);
 	this->start_button->setProperty("class", "start-streaming");
 	layout->addWidget(this->start_button);
@@ -59,13 +59,13 @@ DrawDock::~DrawDock()
 void DrawDock::StartButtonClicked()
 {
 	if (this->start_button->isChecked()) {
-		this->start_button->setText("Start Draw");
+		this->start_button->setText(obs_module_text("start_draw"));
 		this->start_button->setDisabled(true);
-		this->start_button->setText("Starting Draw...");
+		this->start_button->setText(obs_module_text("starting_draw"));
 		StartPythonDraw();
 	} else {
 		StopPythonDraw();
-		this->start_button->setText("Start Draw");
+		this->start_button->setText(obs_module_text("start_draw"));
 		this->settings_button->setEnabled(true);
 	}
 }
@@ -143,7 +143,7 @@ void DrawDock::StartPythonDraw()
 		for (int i = 0; i < 1000; ++i) {
 			if (this->model_ready.load()) {
 				this->start_button->setEnabled(true);
-				this->start_button->setText("Stop Draw");
+				this->start_button->setText(obs_module_text("stop_draw"));
 				blog(LOG_INFO, "Draw2 python backend started successfully");
 				break;
 			}
@@ -151,7 +151,7 @@ void DrawDock::StartPythonDraw()
 		}
 		if (!this->start_button->isEnabled()) {
 			this->start_button->setDisabled(true);
-			this->start_button->setText("Start Draw");
+			this->start_button->setText(obs_module_text("start_draw"));
 		}
 	}).detach();
 }

@@ -9,6 +9,7 @@
 
 #include "plugin-path.h"
 
+#include <obs-module.h>
 #include <util/base.h>
 
 #ifdef _WIN32
@@ -53,7 +54,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
 
 	auto *layout = new QVBoxLayout(this);
 
-	auto *python_label = new QLabel("Select Python installation:", this);
+	auto *python_label = new QLabel(obs_module_text("python_path"), this);
 	layout->addWidget(python_label);
 
 	auto *python_browse_layout = new QHBoxLayout();
@@ -63,7 +64,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
 	layout->addLayout(python_browse_layout);
 
 	auto *browse_layout = new QHBoxLayout();
-	auto *label = new QLabel("Select Deck Lists to use:", this);
+	auto *label = new QLabel(obs_module_text("deck_list"), this);
 	browse_layout->addWidget(label);
 	this->browse_button->setMaximumWidth(125);
 	browse_layout->addWidget(this->browse_button);
@@ -75,9 +76,9 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
 	this->deck_list1->setMaximumWidth(125);
 	this->deck_list2->setMaximumWidth(125);
 	this->deck_list3->setMaximumWidth(125);
-	this->deck_list1->addItem("(None)");
-	this->deck_list2->addItem("(None)");
-	this->deck_list3->addItem("(None)");
+	this->deck_list1->addItem(obs_module_text("none"));
+	this->deck_list2->addItem(obs_module_text("none"));
+	this->deck_list3->addItem(obs_module_text("none"));
 	for (const QFileInfo &file : files) {
 		this->deck_list1->addItem(file.fileName());
 		this->deck_list2->addItem(file.fileName());
@@ -102,16 +103,16 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent)
 	layout->addLayout(decklist_layout);
 
 	this->minimum_out_of_screen_time->setValue(minimum_out_of_screen_time_value);
-	auto *minimum_out_of_screen_label = new QLabel("Minimum Out of Screen Time (seconds):", this);
+	auto *minimum_out_of_screen_label = new QLabel(obs_module_text("out_of_screen"), this);
 	layout->addWidget(minimum_out_of_screen_label);
 	layout->addWidget(this->minimum_out_of_screen_time);
 
 	this->minimum_screen_time->setValue(minimum_screen_time_value);
-	auto *minimum_screen_label = new QLabel("Minimum Screen Time (seconds):", this);
+	auto *minimum_screen_label = new QLabel(obs_module_text("in_screen"), this);
 	layout->addWidget(minimum_screen_label);
 	layout->addWidget(this->minimum_screen_time);
 
-	auto *confidence_label = new QLabel("Confidence Threshold:", this);
+	auto *confidence_label = new QLabel(obs_module_text("confidence"), this);
 	layout->addWidget(confidence_label);
 	QHBoxLayout *confidence_layout = new QHBoxLayout;
 	this->confidence_slider->setValue(confidence_value);

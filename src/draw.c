@@ -10,7 +10,7 @@
 const char *draw_source_get_name(void *type_data)
 {
 	UNUSED_PARAMETER(type_data);
-	return obs_module_text("Draw Display");
+	return obs_module_text(obs_module_text("draw_display"));
 }
 
 void *draw_source_create(obs_data_t *settings, obs_source_t *source)
