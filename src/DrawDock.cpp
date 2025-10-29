@@ -11,7 +11,6 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <tchar.h>
-#include <Psapi.h>
 #endif
 
 #include "DrawDock.hpp"
@@ -21,26 +20,6 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <obs-module.h>
-
-#include <iostream>
-
-#ifdef _WIN32
-void log_loaded_dlls() {
-	HMODULE hMods[1024];
-	Qt::HANDLE hProcess = GetCurrentProcess();
-	DWORD cbNeeded;
-	if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded)) {
-		for (unsigned int i = 0; i < (cbNeeded / sizeof(HMODULE)); i++) {
-			TCHAR szModName[MAX_PATH];
-			if (GetModuleFileNameEx(hProcess, hMods[i], szModName, sizeof(szModName) / sizeof(TCHAR))) {
-				if (_tcsstr(szModName, L"mf") || _tcsstr(szModName, L"d3d") || _tcsstr(szModName, L"dxgi"))
-					blog(LOG_INFO, "Preloaded: %ls", szModName);
-			}
-		}
-	}
-}
-#endif
-
 
 DrawDock::DrawDock(QWidget *parent) : QWidget(parent)
 {
@@ -105,26 +84,15 @@ void DrawDock::StartPythonDraw()
 	this->should_run.store(true);
 	this->model_ready.store(false);
 
-	if (Py_IsInitialized()) {
-		blog(LOG_INFO, "Python interpreter is initialized.");
-	} else {
-		blog(LOG_INFO, "Python interpreter is not initialized. Initializing now...");
-		initialize_python_interpreter();
-	}
-
 	this->python_thread = std::thread([this]() {
-		blog(LOG_INFO, "Python interpreter started.");
-		PyGILState_STATE gstate = PyGILState_Ensure();
 		blog(LOG_INFO, "Starting Draw2 python backend");
+		PyGILState_STATE gstate = PyGILState_Ensure();
 
 		PyObject *pModule = PyImport_ImportModule("draw");
-		blog(LOG_INFO, "draw module imported successfully");
 
 		if (pModule) {
-			blog(LOG_INFO, "draw module imported successfully");
 			PyObject *pFunc = PyObject_GetAttrString(pModule, "run");
 			if (pFunc && PyCallable_Check(pFunc)) {
-				blog(LOG_INFO, "Running python thread");
 				PyObject *args = PyTuple_New(6);
 				PyObject *capsule_stop = PyCapsule_New(&this->should_run, "stop_flag", nullptr);
 				PyTuple_SetItem(args, 0, capsule_stop);
@@ -174,7 +142,6 @@ void DrawDock::StartPythonDraw()
 	std::thread([this]() {
 		for (int i = 0; i < 1000; ++i) {
 			if (this->model_ready.load()) {
-				blog(LOG_INFO, "Spam");
 				this->start_button->setEnabled(true);
 				this->start_button->setText("Stop Draw");
 				blog(LOG_INFO, "Draw2 python backend started successfully");
@@ -182,7 +149,6 @@ void DrawDock::StartPythonDraw()
 			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
-		blog(LOG_INFO, "Draw2 python backend failed to start in time");
 		if (!this->start_button->isEnabled()) {
 			this->start_button->setDisabled(true);
 			this->start_button->setText("Start Draw");
@@ -218,7 +184,7 @@ void DrawDock::initialize_python_interpreter() const
 		QByteArray pyHome = settings.value("python_path", "").toString().toUtf8();
 		QFileInfo pyHomeInfo(QString::fromUtf8(pyHome));
 		if (!pyHomeInfo.exists() || !pyHomeInfo.isDir()) {
-			blog(LOG_INFO, "Failed to initialize Python interpreter");
+			blog(LOG_INFO, "Failed to initialize Python interpreter Python home path invalid");
 			return;
 		}
 #ifdef _WIN32
@@ -266,21 +232,17 @@ void DrawDock::initialize_python_interpreter() const
 		PyConfig_SetString(&config, &config.executable, pythonExe);
 		PyConfig_SetString(&config, &config.home, pythonHome);
 
-		// putenv(("PYTHONHOME=" + std::string(pyHome)).data());
 		putenv(("PYTHONPATH=" + std::string(pyHome) + "/python312.zip;" + std::string(pyHome) +
 			"/Lib/site-packages;" + std::string(pyHome))
 			       .data());
 
 		const char *pyhome_env = getenv("PYTHONHOME");
 		const char *pypath_env = getenv("PYTHONPATH");
-		const char *lang = getenv("LANG");
-		blog(LOG_INFO, "PYTHONHOME env: %s, PYTHONPATH env: %s, LANG: %s", pyhome_env ? pyhome_env : "(null)",
-		     pypath_env ? pypath_env : "(null)", lang ? lang : "(null)");
+		blog(LOG_INFO, "PYTHONHOME env: %s, PYTHONPATH env: %s", pyhome_env ? pyhome_env : "(null)",
+		     pypath_env ? pypath_env : "(null)");
 
 #ifndef _WIN32
 		PyConfig_SetString(&config, &config.pythonpath_env, pythonPath);
-#else
-		log_loaded_dlls();
 #endif
 
 		PyStatus status = Py_InitializeFromConfig(&config);
@@ -299,34 +261,6 @@ void DrawDock::initialize_python_interpreter() const
 	}
 
 	if (Py_IsInitialized()) {
-		PyRun_SimpleString(
-"import sys, os\n"
-"print('Python OK')\n"
-"print('sys.version =', sys.version)\n"
-"print('sys.executable =', sys.executable)\n"
-"print('sys.path =', sys.path)\n"
-"print('os.__file__ =', os.__file__)\n"
-);
-
-		PyRun_SimpleString(
-"import site; print('site imported successfully')"
-);
-
-
-		PyObject *sys = PyImport_ImportModule("sys");
-		if (sys) {
-			PyObject *path = PyObject_GetAttrString(sys, "path");
-			if (path) {
-				PyObject *repr = PyObject_Repr(path);
-				if (repr) {
-					const char *s = PyUnicode_AsUTF8(repr);
-					blog(LOG_INFO, "sys.path: %s", s ? s : "(null)");
-					Py_XDECREF(repr);
-				}
-				Py_XDECREF(path);
-			}
-			Py_XDECREF(sys);
-		}
 
 		PyObject *pModule = PyImport_ImportModule("draw");
 		if (!pModule) {
@@ -399,7 +333,20 @@ void DrawDock::initialize_python_interpreter() const
 				Py_XDECREF(find_spec);
 				Py_XDECREF(importlib_util);
 			}
-
+			PyObject *sys = PyImport_ImportModule("sys");
+			if (sys) {
+				PyObject *path = PyObject_GetAttrString(sys, "path");
+				if (path) {
+					PyObject *repr = PyObject_Repr(path);
+					if (repr) {
+						const char *s = PyUnicode_AsUTF8(repr);
+						blog(LOG_INFO, "sys.path: %s", s ? s : "(null)");
+						Py_XDECREF(repr);
+					}
+					Py_XDECREF(path);
+				}
+				Py_XDECREF(sys);
+			}
 			return;
 		}
 		Py_XDECREF(pModule);
