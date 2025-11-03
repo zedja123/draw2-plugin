@@ -66,13 +66,13 @@ correctement :
    le téléchargement est terminé, vous pouvez relancer OBS Studio.
 <\details>
 
-<details open>
+<details>
 <summary>🐧 Linux</summary>
 
 À venir 👀
 <\details>
 
-<details open>
+<details>
 <summary>🍏 MacOS</summary>
 
 Je ne connais pas suffisamment bien OBS sur macOS pour fournir un guide d'installation fiable.

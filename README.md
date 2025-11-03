@@ -64,13 +64,13 @@ Follow the installation instruction depending on your operating system so everyt
 
 </details>
 
-<details open>
+<details>
 <summary>🐧 Linux</summary>
 
 Coming soon 👀
 </details>
 
-<details open>
+<details>
 <summary>🍏 MacOS</summary>
 
 I'm not familiar enough with OBS on macOS to provide a reliable installation guide.
