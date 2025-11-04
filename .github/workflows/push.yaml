@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - main
+      - bug-fix-open-dl-button
       - 'release/**'
     tags:
       - '*'
