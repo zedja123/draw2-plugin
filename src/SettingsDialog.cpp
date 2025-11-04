@@ -21,28 +21,32 @@
 void open_folder(const std::string &folder_path)
 {
 #ifdef _WIN32
-	// Convert UTF-8 std::string to wide string for ShellExecuteW
-	int size_needed = MultiByteToWideChar(CP_UTF8, 0, folder_path.c_str(), -1, NULL, 0);
-	if (size_needed > 0) {
-		std::wstring wpath(size_needed, L'\0');
-		MultiByteToWideChar(CP_UTF8, 0, folder_path.c_str(), -1, &wpath[0], size_needed);
-		if (!wpath.empty() && wpath.back() == L'\0') wpath.pop_back();
+	std::string fixed_path = folder_path;
+	std::replace(fixed_path.begin(), fixed_path.end(), '/', '\\');
 
-		HINSTANCE result = ShellExecuteW(NULL, L"open", wpath.c_str(), NULL, NULL, SW_SHOWNORMAL);
-		if ((INT_PTR)result <= 32) {
-			blog(LOG_ERROR, "ShellExecuteW failed: %d", (int)(INT_PTR)result);
-		}
-	} else {
+	int size_needed = MultiByteToWideChar(CP_UTF8, 0, fixed_path.c_str(), -1, NULL, 0);
+	if (size_needed <= 0) {
 		blog(LOG_ERROR, "MultiByteToWideChar failed converting path");
+		return;
 	}
-#elif __APPLE__
-	std::string command = std::string("open \"") + folder_path + "\"";
+
+	std::wstring wpath(size_needed, L'\0');
+	MultiByteToWideChar(CP_UTF8, 0, fixed_path.c_str(), -1, &wpath[0], size_needed);
+	wpath.resize(size_needed - 1); // Remove trailing null
+
+	HINSTANCE result = ShellExecuteW(NULL, L"explore", wpath.c_str(), NULL, NULL, SW_SHOWNORMAL);
+	if ((INT_PTR)result <= 32) {
+		blog(LOG_ERROR, "ShellExecuteW failed: %d (path: %ls)", (int)(INT_PTR)result, wpath.c_str());
+	}
+#else
+	std::string command =
+#ifdef __APPLE__
+		"open \"" + folder_path + "\"";
+#else
+			"xdg-open \"" + folder_path + "\"";
+#endif
 	int return_value = system(command.c_str());
-	blog(LOG_INFO, "open returned %d", return_value);
-#else // Linux/Unix
-	std::string command = std::string("xdg-open \"") + folder_path + "\"";
-	int return_value = system(command.c_str());
-	blog(LOG_INFO, "xdg-open returned %d", return_value);
+	blog(LOG_INFO, "Open command returned %d", return_value);
 #endif
 }
 
