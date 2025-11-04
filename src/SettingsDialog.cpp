@@ -43,7 +43,7 @@ void open_folder(const std::string &folder_path)
 #ifdef __APPLE__
 		"open \"" + folder_path + "\"";
 #else
-			"xdg-open \"" + folder_path + "\"";
+		"xdg-open \"" + folder_path + "\"";
 #endif
 	int return_value = system(command.c_str());
 	blog(LOG_INFO, "Open command returned %d", return_value);
