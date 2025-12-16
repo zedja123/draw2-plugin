@@ -96,6 +96,37 @@ extern "C" void init_shared_memory(draw_source_data_t *context)
 	}
 }
 
+extern "C" bool init_read_shared_memory(draw_source_data_t *context)
+{
+	using namespace boost::interprocess;
+
+	// Cleanup old mapping
+	if (context->region) {
+		delete static_cast<mapped_region *>(context->region);
+		context->region = nullptr;
+		context->shared_frame = nullptr;
+	}
+
+	try {
+		windows_shared_memory shm(
+			open_only,
+			PYTHON_SHM_NAME,
+			read_only
+		);
+
+		auto *region = new mapped_region(shm, read_only);
+		context->region = region;
+		context->shared_frame = region->get_address();
+
+		blog(LOG_INFO, "Python shared memory attached");
+		return true;
+	}
+	catch (const interprocess_exception &e) {
+		blog(LOG_ERROR, "Failed to open Python SHM: %s", e.what());
+		return false;
+	}
+}
+
 
 extern "C" void destroy_shared_memory(draw_source_data_t *context)
 {
@@ -108,32 +139,55 @@ extern "C" void destroy_shared_memory(draw_source_data_t *context)
 
 extern "C" bool read_shared_memory(draw_source_data_t *context)
 {
-	using namespace boost::interprocess;
+	if (!context->shared_frame)
+		return false;
 
-	try {
-		shared_memory_object shm(open_only, PYTHON_SHM_NAME, read_only);
-		mapped_region region(shm, read_only);
+	auto *header =
+		static_cast<shared_frame_header_t *>(context->shared_frame);
 
-		auto *python_header = static_cast<shared_frame_header_t *>(region.get_address());
+	// Validate header
+	if (header->width == 0 || header->height == 0)
+		return false;
 
-		context->display_width = python_header->width;
-		context->display_height = python_header->height;
+	// Detect resolution change
+	if (context->display_width != header->width ||
+	    context->display_height != header->height ||
+	    !context->display_texture)
+	{
+		context->display_width  = header->width;
+		context->display_height = header->height;
 
-		uint8_t *image_data = static_cast<uint8_t *>(region.get_address()) + sizeof(shared_frame_header_t);
 		if (context->display_texture)
 			gs_texture_destroy(context->display_texture);
-		context->display_texture = gs_texture_create(context->display_width, context->display_height, GS_RGBA,
-							     1, nullptr, GS_DYNAMIC);
-		gs_texture_set_image(context->display_texture, image_data, context->display_width * 4, false);
 
-	} catch (const interprocess_exception &ex) {
-		(void)ex;
-		context->processing = false;
-		return false;
+		context->display_texture = gs_texture_create(
+			context->display_width,
+			context->display_height,
+			GS_RGBA,
+			1,
+			nullptr,
+			GS_DYNAMIC
+		);
+
+		blog(LOG_INFO, "Display texture recreated (%ux%u)",
+		     context->display_width,
+		     context->display_height);
 	}
+
+	uint8_t *image_data =
+		static_cast<uint8_t *>(context->shared_frame) +
+		sizeof(shared_frame_header_t);
+
+	gs_texture_set_image(
+		context->display_texture,
+		image_data,
+		context->display_width * 4,
+		false
+	);
 
 	return true;
 }
+
 
 extern "C" void ensure_shared_memory_exists(draw_source_data_t *context)
 {
@@ -143,5 +197,6 @@ extern "C" void ensure_shared_memory_exists(draw_source_data_t *context)
 	} catch (const interprocess_exception &ex) {
 		(void)ex;
 		init_shared_memory(context);
+		init_read_shared_memory(context);
 	}
 }
