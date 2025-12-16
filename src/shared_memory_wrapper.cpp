@@ -19,38 +19,83 @@ struct shared_frame_header {
 	uint32_t height;
 };
 typedef struct shared_frame_header shared_frame_header_t;
-extern "C" void write_message_to_shared_memory(draw_source_data_t *context, uint8_t *frame, uint32_t linesize,
-					       uint32_t width, uint32_t height)
+extern "C" void write_message_to_shared_memory(
+	draw_source_data_t *context,
+	uint8_t *frame,
+	uint32_t linesize,
+	uint32_t width,
+	uint32_t height)
 {
-	auto *header = static_cast<shared_frame_header_t *>(context->shared_frame);
-	header->width = width;
-	header->height = height;
-	blog(LOG_INFO, "writting to shared mem");
+	if (!context->shared_frame)
+		return;
 
-	uint8_t *frame_data = static_cast<uint8_t *>(context->shared_frame) + sizeof(shared_frame_header_t);
+	auto *header = static_cast<shared_frame_header_t *>(context->shared_frame);
+
+	header->width  = width;
+	header->height = height;
+
+	uint8_t *frame_data =
+		static_cast<uint8_t *>(context->shared_frame) +
+		sizeof(shared_frame_header_t);
+
 	for (uint32_t y = 0; y < height; y++) {
-		memcpy(frame_data + y * width * 4, frame + y * linesize, width * 4);
+		memcpy(
+			frame_data + size_t(y) * width * 4,
+			frame + size_t(y) * linesize,
+			size_t(width) * 4
+		);
 	}
 }
+
 
 extern "C" void init_shared_memory(draw_source_data_t *context)
 {
 	using namespace boost::interprocess;
-	size_t required_size =
-		sizeof(shared_frame_header_t) + (size_t)context->source_width * context->source_height * 4;
 
-	if (context->shared_frame) {
-		shared_memory_object::remove(OBS_SHM_NAME);
-		context->shared_frame = nullptr;
-		context->region = nullptr;
+	// Guard against invalid sizes (VERY IMPORTANT)
+	if (context->source_width == 0 || context->source_height == 0) {
+		blog(LOG_WARNING, "Shared memory not initialized: invalid frame size");
+		return;
 	}
 
-	windows_shared_memory shm(open_or_create, OBS_SHM_NAME, read_write, required_size);
+	// Compute size safely
+	size_t pixel_bytes =
+		size_t(context->source_width) *
+		size_t(context->source_height) * 4;
 
-	context->region = static_cast<void *>(new mapped_region(shm, read_write));
-	context->shared_frame = static_cast<mapped_region *>(context->region)->get_address();
-	blog(LOG_INFO, "shared memory initialized");
+	size_t required_size =
+		sizeof(shared_frame_header_t) + pixel_bytes;
+
+	// Cleanup previous mapping (if any)
+	if (context->region) {
+		delete static_cast<mapped_region *>(context->region);
+		context->region = nullptr;
+		context->shared_frame = nullptr;
+	}
+
+	try {
+		// OBS MUST be the creator
+		windows_shared_memory shm(
+			create_only,
+			OBS_SHM_NAME,
+			read_write,
+			required_size
+		);
+
+		auto *region = new mapped_region(shm, read_write);
+		context->region = region;
+		context->shared_frame = region->get_address();
+
+		// Zero-init header (good hygiene)
+		memset(context->shared_frame, 0, sizeof(shared_frame_header_t));
+
+		blog(LOG_INFO, "Shared memory initialized (%zu bytes)", required_size);
+	}
+	catch (const interprocess_exception &e) {
+		blog(LOG_ERROR, "Shared memory init failed: %s", e.what());
+	}
 }
+
 
 extern "C" void destroy_shared_memory(draw_source_data_t *context)
 {
