@@ -11,6 +11,7 @@
 #include "shared_memory_wrapper.h"
 
 #include <boost/interprocess/shared_memory_object.hpp>
+#include <boost/interprocess/windows_shared_memory.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
 struct shared_frame_header {
@@ -43,7 +44,7 @@ extern "C" void init_shared_memory(draw_source_data_t *context)
 		context->region = nullptr;
 	}
 
-	shared_memory_object shm(open_or_create, OBS_SHM_NAME, read_write);
+	windows_shared_memory shm(open_or_create, OBS_SHM_NAME, read_write);
 	shm.truncate(static_cast<offset_t>(required_size));
 
 	context->region = static_cast<void *>(new mapped_region(shm, read_write));
