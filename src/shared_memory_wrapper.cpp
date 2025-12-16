@@ -96,17 +96,21 @@ extern "C" void init_shared_memory(draw_source_data_t *context)
 	}
 }
 
-extern "C" bool init_read_shared_memory(draw_source_data_t *context)
+
+extern "C" void destroy_shared_memory(draw_source_data_t *context)
 {
 	using namespace boost::interprocess;
+	shared_memory_object::remove(OBS_SHM_NAME);
+	shared_memory_object::remove(PYTHON_SHM_NAME);
+	context->region = nullptr;
+	context->shared_frame = nullptr;
+}
 
-	// Cleanup old mapping
-	if (context->region) {
-		delete static_cast<mapped_region *>(context->region);
-		context->region = nullptr;
-		context->shared_frame = nullptr;
-	}
-
+extern "C" bool read_shared_memory(draw_source_data_t *context)
+{
+	if (!context->shared_frame)
+		return false;
+	
 	try {
 		windows_shared_memory shm(
 			open_only,
@@ -125,22 +129,6 @@ extern "C" bool init_read_shared_memory(draw_source_data_t *context)
 		blog(LOG_ERROR, "Failed to open Python SHM: %s", e.what());
 		return false;
 	}
-}
-
-
-extern "C" void destroy_shared_memory(draw_source_data_t *context)
-{
-	using namespace boost::interprocess;
-	shared_memory_object::remove(OBS_SHM_NAME);
-	shared_memory_object::remove(PYTHON_SHM_NAME);
-	context->region = nullptr;
-	context->shared_frame = nullptr;
-}
-
-extern "C" bool read_shared_memory(draw_source_data_t *context)
-{
-	if (!context->shared_frame)
-		return false;
 
 	auto *header =
 		static_cast<shared_frame_header_t *>(context->shared_frame);
@@ -197,6 +185,5 @@ extern "C" void ensure_shared_memory_exists(draw_source_data_t *context)
 	} catch (const interprocess_exception &ex) {
 		(void)ex;
 		init_shared_memory(context);
-		init_read_shared_memory(context);
 	}
 }
