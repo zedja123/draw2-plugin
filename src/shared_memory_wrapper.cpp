@@ -44,8 +44,7 @@ extern "C" void init_shared_memory(draw_source_data_t *context)
 		context->region = nullptr;
 	}
 
-	windows_shared_memory shm(open_or_create, OBS_SHM_NAME, read_write);
-	shm.truncate(static_cast<offset_t>(required_size));
+	windows_shared_memory shm(open_or_create, OBS_SHM_NAME, read_write, required_size);
 
 	context->region = static_cast<void *>(new mapped_region(shm, read_write));
 	context->shared_frame = static_cast<mapped_region *>(context->region)->get_address();
