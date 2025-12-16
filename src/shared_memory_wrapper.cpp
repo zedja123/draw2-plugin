@@ -108,6 +108,7 @@ extern "C" void destroy_shared_memory(draw_source_data_t *context)
 
 extern "C" bool read_shared_memory(draw_source_data_t *context)
 {
+	using namespace boost::interprocess;
 	if (!context->shared_frame)
 		return false;
 	
