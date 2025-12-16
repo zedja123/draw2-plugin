@@ -25,6 +25,7 @@ extern "C" void write_message_to_shared_memory(draw_source_data_t *context, uint
 	auto *header = static_cast<shared_frame_header_t *>(context->shared_frame);
 	header->width = width;
 	header->height = height;
+	blog(LOG_INFO, "writting to shared mem");
 
 	uint8_t *frame_data = static_cast<uint8_t *>(context->shared_frame) + sizeof(shared_frame_header_t);
 	for (uint32_t y = 0; y < height; y++) {
@@ -48,6 +49,7 @@ extern "C" void init_shared_memory(draw_source_data_t *context)
 
 	context->region = static_cast<void *>(new mapped_region(shm, read_write));
 	context->shared_frame = static_cast<mapped_region *>(context->region)->get_address();
+	blog(LOG_INFO, "shared memory initialized");
 }
 
 extern "C" void destroy_shared_memory(draw_source_data_t *context)
