@@ -120,8 +120,7 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 		auto *region = new mapped_region(shm, read_only);
 		context->region = region;
 
-		auto *python_header =
-			static_cast<shared_frame_header_t *>(region.get_address());
+		auto *python_header = static_cast<shared_frame_header_t *>(region.get_address());
 
 				// Validate header
 		if (python_header->width == 0 || python_header->height == 0) {
