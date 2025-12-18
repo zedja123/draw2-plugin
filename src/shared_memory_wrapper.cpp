@@ -123,21 +123,21 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 		auto *python_header =
 			static_cast<shared_frame_header_t *>(region.get_address());
 
+				// Validate header
+		if (python_header->width == 0 || python_header->height == 0) {
+			blog(LOG_ERROR, "Size of the image in the header are null");
+			return false;
+		}
+	
+		context->display_width  = python_header->width;
+		context->display_height = python_header->height;
+
 		blog(LOG_INFO, "Python shared memory attached");
 	}
 	catch (const interprocess_exception &e) {
 		blog(LOG_ERROR, "Failed to open Python SHM: %s", e.what());
 		return false;
 	}
-
-	// Validate header
-	if (python_header->width == 0 || python_header->height == 0) {
-		blog(LOG_ERROR, "Size of the image in the header are null");
-		return false;
-	}
-
-	context->display_width  = header->width;
-	context->display_height = header->height;
 
 	if (context->display_texture)
 		gs_texture_destroy(context->display_texture);
