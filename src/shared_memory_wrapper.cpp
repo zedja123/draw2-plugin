@@ -109,8 +109,6 @@ extern "C" void destroy_shared_memory(draw_source_data_t *context)
 extern "C" bool read_shared_memory(draw_source_data_t *context)
 {
 	using namespace boost::interprocess;
-	if (!context->shared_frame)
-		return false;
 	
 	try {
 		windows_shared_memory shm(
@@ -121,47 +119,42 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 
 		auto *region = new mapped_region(shm, read_only);
 		context->region = region;
-		context->shared_frame = region->get_address();
+
+		auto *python_header =
+			static_cast<shared_frame_header_t *>(region.get_address());
 
 		blog(LOG_INFO, "Python shared memory attached");
-		return true;
 	}
 	catch (const interprocess_exception &e) {
 		blog(LOG_ERROR, "Failed to open Python SHM: %s", e.what());
 		return false;
 	}
 
-	auto *header =
-		static_cast<shared_frame_header_t *>(context->shared_frame);
-
 	// Validate header
-	if (header->width == 0 || header->height == 0)
+	if (python_header->width == 0 || python_header->height == 0) {
+		blog(LOG_ERROR, "Size of the image in the header are null");
 		return false;
-
-	// Detect resolution change
-	if (context->display_width != header->width ||
-	    context->display_height != header->height ||
-	    !context->display_texture)
-	{
-		context->display_width  = header->width;
-		context->display_height = header->height;
-
-		if (context->display_texture)
-			gs_texture_destroy(context->display_texture);
-
-		context->display_texture = gs_texture_create(
-			context->display_width,
-			context->display_height,
-			GS_RGBA,
-			1,
-			nullptr,
-			GS_DYNAMIC
-		);
-
-		blog(LOG_INFO, "Display texture recreated (%ux%u)",
-		     context->display_width,
-		     context->display_height);
 	}
+
+	context->display_width  = header->width;
+	context->display_height = header->height;
+
+	if (context->display_texture)
+		gs_texture_destroy(context->display_texture);
+
+	context->display_texture = gs_texture_create(
+		context->display_width,
+		context->display_height,
+		GS_RGBA,
+		1,
+		nullptr,
+		GS_DYNAMIC
+	);
+
+	blog(LOG_INFO, "Display texture recreated (%ux%u)",
+		 context->display_width,
+		 context->display_height);
+
 
 	uint8_t *image_data =
 		static_cast<uint8_t *>(context->shared_frame) +
