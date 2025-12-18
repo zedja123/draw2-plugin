@@ -137,6 +137,7 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 	}
 	catch (const interprocess_exception &e) {
 		blog(LOG_ERROR, "Failed to open Python SHM: %s", e.what());
+		context->processing = false;
 		return false;
 	}
 
