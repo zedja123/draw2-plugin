@@ -67,16 +67,13 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 {
 	UNUSED_PARAMETER(effect);
 	draw_source_data_t *context = data;
-	blog(LOG_INFO, "L70");
 	if (!context->source)
 		return;
 
-	blog(LOG_INFO, "L74");
 	if (context->processing)
 		return;
 	context->processing = true;
 	obs_source_t *source = obs_weak_source_get_source(context->source);
-	blog(LOG_INFO, "L79");
 	if (!source) {
 		context->processing = false;
 		return;
@@ -86,14 +83,12 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 	uint32_t height = context->source_height;
 
 	gs_texrender_t *render = gs_texrender_create(GS_RGBA, GS_ZS_NONE);
-	blog(LOG_INFO, "L89");
 	if (!gs_texrender_begin(render, width, height)) {
 		obs_source_release(source);
 		context->processing = false;
 		gs_texrender_destroy(render);
 		return;
 	}
-	blog(LOG_INFO, "L96");
 
 	ensure_shared_memory_exists(context);
 
@@ -104,7 +99,6 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 
 	obs_source_video_render(source);
 	gs_texrender_end(render);
-	blog(LOG_INFO, "L107");
 
 	gs_texture_t *texture = gs_texrender_get_texture(render);
 	if (texture) {
@@ -126,12 +120,10 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 			blog(LOG_ERROR, "Failed to capture stage surface");
 		}
 	}
-	blog(LOG_INFO, "126");
 
 	gs_texrender_destroy(render);
 	obs_source_release(source);
 
-	blog(LOG_INFO, "calling read_shared_memory");
 	if (!read_shared_memory(context)) {
 		return;
 	}
