@@ -72,6 +72,8 @@ extern "C" void init_shared_memory(draw_source_data_t *context)
 		context->region = nullptr;
 		context->shared_frame = nullptr;
 	}
+	if (context->shared_frame)
+		blog(LOG_INFO, "shared memory not empty");
 
 	try {
 		// OBS MUST be the creator
