@@ -159,7 +159,7 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 			 context->display_height);
 	
 	
-		uint8_t *image_data = static_cast<uint8_t *>(region.get_address()) + sizeof(shared_frame_header_t);
+		uint8_t *image_data = static_cast<uint8_t *>(region->get_address()) + sizeof(shared_frame_header_t);
 	
 		gs_texture_set_image(
 			context->display_texture,
