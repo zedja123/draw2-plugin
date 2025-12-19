@@ -83,19 +83,23 @@ extern "C" void init_shared_memory(draw_source_data_t *context)
 			read_write,
 			required_size
 		);
-
-		auto *region = new mapped_region(shm, read_write);
-		context->region = region;
-		context->shared_frame = region->get_address();
-
-		// Zero-init header (good hygiene)
-		memset(context->shared_frame, 0, sizeof(shared_frame_header_t));
-
-		blog(LOG_INFO, "Shared memory initialized (%zu bytes)", required_size);
 	}
 	catch (const interprocess_exception &e) {
-		blog(LOG_ERROR, "Shared memory init failed: %s", e.what());
+		windows_shared_memory shm(
+			open_only,
+			OBS_SHM_NAME,
+			read_write,
+			required_size
+		);
 	}
+	auto *region = new mapped_region(shm, read_write);
+	context->region = region;
+	context->shared_frame = region->get_address();
+
+	// Zero-init header (good hygiene)
+	memset(context->shared_frame, 0, sizeof(shared_frame_header_t));
+
+	blog(LOG_INFO, "Shared memory initialized (%zu bytes)", required_size);
 }
 
 
