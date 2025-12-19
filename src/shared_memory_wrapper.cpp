@@ -100,8 +100,6 @@ extern "C" void init_shared_memory(draw_source_data_t *context)
 
 		// Zero-init header (good hygiene)
 		memset(context->shared_frame, 0, sizeof(shared_frame_header_t));
-	
-		blog(LOG_INFO, "Shared memory initialized (%zu bytes)", required_size);
 	}
 }
 
@@ -139,8 +137,6 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 	
 		context->display_width  = python_header->width;
 		context->display_height = python_header->height;
-
-		blog(LOG_INFO, "Python shared memory attached");
 	
 		if (context->display_texture)
 			gs_texture_destroy(context->display_texture);
@@ -152,12 +148,7 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 			1,
 			nullptr,
 			GS_DYNAMIC
-		);
-	
-		blog(LOG_INFO, "Display texture recreated (%ux%u)",
-			 context->display_width,
-			 context->display_height);
-	
+		);	
 	
 		uint8_t *image_data = static_cast<uint8_t *>(region->get_address()) + sizeof(shared_frame_header_t);
 	
