@@ -96,8 +96,7 @@ extern "C" void init_shared_memory(draw_source_data_t *context)
 		windows_shared_memory shm(
 			open_only,
 			OBS_SHM_NAME,
-			read_write,
-			required_size
+			read_write
 		);
 		auto *region = new mapped_region(shm, read_write);
 		context->region = region;
