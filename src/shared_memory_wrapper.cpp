@@ -141,37 +141,37 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 		context->display_height = python_header->height;
 
 		blog(LOG_INFO, "Python shared memory attached");
+	
+		if (context->display_texture)
+			gs_texture_destroy(context->display_texture);
+	
+		context->display_texture = gs_texture_create(
+			context->display_width,
+			context->display_height,
+			GS_RGBA,
+			1,
+			nullptr,
+			GS_DYNAMIC
+		);
+	
+		blog(LOG_INFO, "Display texture recreated (%ux%u)",
+			 context->display_width,
+			 context->display_height);
+	
+	
+		uint8_t *image_data = static_cast<uint8_t *>(region.get_address()) + sizeof(shared_frame_header_t);
+	
+		gs_texture_set_image(
+			context->display_texture,
+			image_data,
+			context->display_width * 4,
+			false
+		);
 	}
 	catch (const interprocess_exception &) {
 		context->processing = false;
 		return false;
 	}
-
-	if (context->display_texture)
-		gs_texture_destroy(context->display_texture);
-
-	context->display_texture = gs_texture_create(
-		context->display_width,
-		context->display_height,
-		GS_RGBA,
-		1,
-		nullptr,
-		GS_DYNAMIC
-	);
-
-	blog(LOG_INFO, "Display texture recreated (%ux%u)",
-		 context->display_width,
-		 context->display_height);
-
-
-	uint8_t *image_data = static_cast<uint8_t *>(region.get_address()) + sizeof(shared_frame_header_t);
-
-	gs_texture_set_image(
-		context->display_texture,
-		image_data,
-		context->display_width * 4,
-		false
-	);
 
 	return true;
 }
