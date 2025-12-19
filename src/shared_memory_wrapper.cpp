@@ -92,7 +92,7 @@ extern "C" void init_shared_memory(draw_source_data_t *context)
 	
 		blog(LOG_INFO, "Shared memory initialized (%zu bytes)", required_size);
 	}
-	catch (const interprocess_exception &e) {
+	catch (const interprocess_exception &) {
 		windows_shared_memory shm(
 			open_only,
 			OBS_SHM_NAME,
