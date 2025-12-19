@@ -109,8 +109,6 @@ extern "C" void destroy_shared_memory(draw_source_data_t *context)
 extern "C" bool read_shared_memory(draw_source_data_t *context)
 {
 	using namespace boost::interprocess;
-
-	blog(LOG_INFO, "reading shared memory");
 	
 	try {
 		windows_shared_memory shm(
