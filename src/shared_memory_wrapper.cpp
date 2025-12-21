@@ -131,8 +131,7 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 		uint8_t *image_data = static_cast<uint8_t *>(region.get_address()) + sizeof(shared_frame_header_t);
 
 		gs_texture_set_image(context->display_texture, image_data, context->display_width * 4, false);
-	} catch (const interprocess_exception &e) {
-		blog(LOG_INFO, "Failed to read shared memory: %s", e.what());
+	} catch (const interprocess_exception &) {
 		context->processing = false;
 		return false;
 	}
