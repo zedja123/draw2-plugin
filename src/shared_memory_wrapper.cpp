@@ -116,6 +116,7 @@ extern "C" bool read_shared_memory(draw_source_data_t *context)
 
 		if (python_header->width == 0 || python_header->height == 0) {
 			blog(LOG_ERROR, "Size of the image in the header are null");
+			context->processing = false;
 			return false;
 		}
 
