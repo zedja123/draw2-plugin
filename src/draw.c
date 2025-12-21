@@ -124,7 +124,6 @@ void draw_source_video_render(void *data, gs_effect_t *effect)
 	gs_texrender_destroy(render);
 	obs_source_release(source);
 
-	blog(LOG_INFO, "calling read_shared_memory");
 	if (!read_shared_memory(context)) {
 		return;
 	}
