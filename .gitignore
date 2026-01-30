@@ -17,6 +17,7 @@
 !LICENSE
 !README.md
 !README_fr.md
+!README_pt-br.md
 
 # Exclude lock files
 *.lock.json
